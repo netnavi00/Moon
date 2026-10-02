@@ -53,7 +53,7 @@ moon/
 | Coordinador | todo | `proyecto/` (plan, tareas, criterios, estado, bitácora), `.claude/` y `lecciones.md`; al cierre y con aprobación de Nanni, copia `src/` a `entregables/vN/` | solo lectura, más `node --test "src/tests/*.test.js"` para pasarle la salida completa al revisor |
 | Programador | todo | `src/` | pruebas y servidor local |
 | Arte | todo | solo `src/js/sprites.js` | no |
-| Revisor | todo (solo Read, Grep, Glob) | **nada** | **no** (recibe del coordinador la salida de las pruebas) |
+| Revisor | todo: Read, Grep, Glob (y el canal de regreso del subagente) | **nada** | **no** (recibe del coordinador la salida de las pruebas) |
 | Diagnosticador | todo | **nada** (solo reporta) | solo lectura |
 | Reparador | todo | `src/` (solo lo que indique el diagnóstico) | pruebas |
 
