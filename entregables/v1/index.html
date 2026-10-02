@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Mensajero Orbital</title>
+  <style>
+    :root {
+      --ok: #3dff7a;
+      --warn: #ffd23d;
+      --bad: #ff4d4d;
+      --ink: #f2f2f2;
+      --gold: #f2c230;
+      --panel: rgba(5, 8, 24, 0.82);
+      --edge: #6c7bd9;
+      --px: 3px; /* tamaño del "píxel" de los bordes */
+    }
+    html, body {
+      margin: 0;
+      height: 100%;
+      background: #000;
+      overflow: hidden;
+    }
+    body {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    /* El escenario mide lo mismo que el canvas escalado; los textos HTML van encima. */
+    #stage {
+      position: relative;
+    }
+    canvas {
+      display: block;
+      image-rendering: pixelated;
+      image-rendering: crisp-edges;
+    }
+
+    /* ---------- Estilo arcade común ---------- */
+    .overlay-text {
+      position: absolute;
+      z-index: 1;
+      pointer-events: none;
+      font-family: Consolas, "Courier New", ui-monospace, monospace;
+      font-weight: bold;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      color: var(--ink);
+      font-variant-numeric: tabular-nums;
+      /* contorno oscuro para contraste + brillo neón del color actual */
+      text-shadow:
+        -2px -2px 0 #000, 2px -2px 0 #000, -2px 2px 0 #000, 2px 2px 0 #000,
+        0 0 8px currentColor;
+    }
+    /* Panel con borde de píxeles (esquinas recortadas). */
+    .pixel-panel {
+      background: var(--panel);
+      box-shadow:
+        0 calc(-1 * var(--px)) 0 0 var(--edge),
+        0 var(--px) 0 0 var(--edge),
+        calc(-1 * var(--px)) 0 0 0 var(--edge),
+        var(--px) 0 0 0 var(--edge),
+        0 0 14px 2px rgba(108, 123, 217, 0.45);
+    }
+
+    /* ---------- HUD ---------- */
+    #hud {
+      top: calc(2% + var(--px));
+      left: calc(1.5% + var(--px));
+      padding: 0.5em 0.8em;
+      font-size: clamp(10px, 1.15vw, 20px);
+      line-height: 1.5;
+    }
+    .hud-row {
+      display: flex;
+      align-items: center;
+      gap: 0.6em;
+      white-space: nowrap;
+    }
+    .hud-label {
+      width: 8.5em;
+      color: #aab4ff;
+    }
+    .hud-value {
+      min-width: 6ch;
+      text-align: right;
+    }
+    .ok { color: var(--ok); }
+    .bad { color: var(--bad); }
+
+    /* Barra de combustible */
+    .fuel-bar {
+      position: relative;
+      width: 7em;
+      height: 0.8em;
+      background: #000;
+      box-shadow:
+        0 -2px 0 0 var(--ink), 0 2px 0 0 var(--ink),
+        -2px 0 0 0 var(--ink), 2px 0 0 0 var(--ink);
+    }
+    #fuel-fill {
+      height: 100%;
+      background: currentColor;
+      box-shadow: 0 0 8px currentColor;
+    }
+    #fuel-row.fuel-high { color: var(--ok); }
+    #fuel-row.fuel-mid  { color: var(--warn); }
+    #fuel-row.fuel-low  { color: var(--bad); }
+    #fuel-row.fuel-low .fuel-bar { animation: blink 0.5s steps(1, end) infinite; }
+
+    /* Mini nave que indica el ángulo */
+    #angle-icon {
+      width: 1.1em;
+      height: 1.1em;
+      shape-rendering: crispEdges;
+      filter: drop-shadow(0 0 3px currentColor);
+    }
+
+    /* ---------- Pantalla final ---------- */
+    #end {
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      padding: 0.9em 1.8em;
+      text-align: center;
+      white-space: nowrap;
+    }
+    #end[hidden] { display: none; }
+    #end.landed  { color: var(--gold); --edge: var(--gold); }
+    #end.crashed { color: var(--bad);  --edge: var(--bad); }
+    #end-title {
+      font-size: clamp(18px, 3vw, 52px);
+      letter-spacing: 0.08em;
+    }
+    #end-reason, #end-hint {
+      font-size: clamp(12px, 1.5vw, 26px);
+      color: var(--ink);
+      margin-top: 0.5em;
+    }
+    #end-hint { color: #aab4ff; }
+
+    /* Éxito: el panel entra rebotando y salen destellos (un rato, luego quietos). */
+    #end.landed { animation: bounce-in 0.7s steps(7, end) both; }
+    #end.landed .spark { display: block; animation: twinkle 0.6s steps(3, end) 4 both; }
+    .spark {
+      display: none;
+      position: absolute;
+      width: 4px;
+      height: 4px;
+      background: #fff;
+      box-shadow: 4px 0 0 #fff, -4px 0 0 #fff, 0 4px 0 #fff, 0 -4px 0 #fff, 0 0 8px var(--gold);
+    }
+    .spark:nth-of-type(1) { top: -10px;  left: 8%; }
+    .spark:nth-of-type(2) { top: 20%;    right: -12px; animation-delay: 0.15s !important; }
+    .spark:nth-of-type(3) { bottom: -10px; left: 45%; animation-delay: 0.3s !important; }
+    .spark:nth-of-type(4) { top: 55%;    left: -12px; animation-delay: 0.45s !important; }
+
+    /* Choque: sacudida y parpadeo al entrar; después queda estable para leer el motivo. */
+    #end.crashed { animation: shake 0.5s steps(8, end) both; }
+    #end.crashed #end-title { animation: blink 0.25s steps(1, end) 4 both; }
+
+    @keyframes blink {
+      0%   { opacity: 1; }
+      50%  { opacity: 0.2; }
+      100% { opacity: 1; }
+    }
+    @keyframes bounce-in {
+      0%   { transform: translate(-50%, -160%); }
+      40%  { transform: translate(-50%, -40%); }
+      60%  { transform: translate(-50%, -62%); }
+      80%  { transform: translate(-50%, -46%); }
+      100% { transform: translate(-50%, -50%); }
+    }
+    @keyframes shake {
+      0%, 100% { transform: translate(-50%, -50%); }
+      20% { transform: translate(calc(-50% - 8px), calc(-50% + 3px)); }
+      40% { transform: translate(calc(-50% + 7px), calc(-50% - 3px)); }
+      60% { transform: translate(calc(-50% - 5px), calc(-50% + 2px)); }
+      80% { transform: translate(calc(-50% + 3px), -50%); }
+    }
+    @keyframes twinkle {
+      0%   { opacity: 0; transform: scale(0.5); }
+      50%  { opacity: 1; transform: scale(1); }
+      100% { opacity: 0; transform: scale(0.5); }
+    }
+
+    /* Sin animaciones si el sistema pide reducir movimiento. */
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        animation: none !important;
+        transition: none !important;
+      }
+      .spark { display: none !important; }
+    }
+  </style>
+</head>
+<body>
+  <div id="stage">
+    <div id="hud" class="overlay-text pixel-panel">
+      <div class="hud-row fuel-high" id="fuel-row">
+        <span class="hud-label">Combustible</span>
+        <div class="fuel-bar"><div id="fuel-fill"></div></div>
+        <span class="hud-value" id="fuel-val"></span>
+      </div>
+      <div class="hud-row">
+        <span class="hud-label">Vel. vert.</span>
+        <span class="hud-value" id="vy-val"></span>
+      </div>
+      <div class="hud-row">
+        <span class="hud-label">Vel. horiz.</span>
+        <span class="hud-value" id="vx-val"></span>
+      </div>
+      <div class="hud-row" id="angle-row">
+        <span class="hud-label">Ángulo</span>
+        <svg id="angle-icon" viewBox="0 0 7 7" aria-hidden="true">
+          <rect x="3" y="0" width="1" height="1" fill="currentColor"/>
+          <rect x="2" y="1" width="3" height="3" fill="currentColor"/>
+          <rect x="1" y="4" width="5" height="2" fill="currentColor"/>
+          <rect x="0" y="5" width="1" height="2" fill="currentColor"/>
+          <rect x="6" y="5" width="1" height="2" fill="currentColor"/>
+        </svg>
+        <span class="hud-value" id="angle-val"></span>
+      </div>
+    </div>
+    <div id="end" class="overlay-text pixel-panel" hidden>
+      <span class="spark"></span><span class="spark"></span><span class="spark"></span><span class="spark"></span>
+      <div id="end-title"></div>
+      <div id="end-reason"></div>
+      <div id="end-hint">R o Espacio para reintentar</div>
+    </div>
+  </div>
+  <script src="https://cdn.jsdelivr.net/npm/phaser@3.80.1/dist/phaser.min.js"></script>
+  <script src="js/physics.js"></script>
+  <script src="js/sprites.js"></script>
+  <script src="js/game.js"></script>
+</body>
+</html>
