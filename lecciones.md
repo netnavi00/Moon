@@ -12,6 +12,7 @@ Una línea por lección. Sirven para cualquier proyecto.
 - 2026-10-02 (Mensajero Orbital v2): la dificultad se verifica jugando, no solo con cálculos: el Asteroide cumplía la regla de dificultad en los datos pero salió más fácil que Marte, y se corrigió cambiando datos.
 - 2026-10-02 (Mensajero Orbital v2): calcular a mano las secuencias fijas antes de construir sirvió: coincidieron exactamente en la primera corrida y dieron una referencia independiente del código.
 - 2026-10-02 (Mensajero Orbital v2): al cambiar un valor, primero se actualizan las pruebas y se comprueba que fallen solo las afectadas; luego se cambian los datos.
+- 2026-10-02 (Mensajero Orbital v2): Los archivos temporales van en la carpeta temporal de la sesión o dentro de moon/, nunca fuera sin aprobación. Si hace falta guardar algo para comparar después, va en un archivo de proyecto/, no en temporales.
 
 ## Fuera de alcance (pendiente para v3)
 
