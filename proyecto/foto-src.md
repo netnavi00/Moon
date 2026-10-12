@@ -1,68 +1,47 @@
-# Foto de src/ antes de T08 (v2)
+# Foto de src/ (v3)
 
-Uso exclusivo del coordinador para comprobar que la revisión no modifica `src/`. **No se le pasa al revisor.**
+Uso exclusivo del coordinador para comprobar que la revisión no modifica `src/`. **No se le pasa al revisor.** La foto de v2 está en `proyecto/v2/foto-src.md`.
 
-Tomada el 2026-10-02, antes de lanzar al revisor.
+## Antes de T08 (2026-10-11)
 
-| Archivo | sha256 | Fecha de modificación |
+| Archivo | sha256 | Modificado |
 |---|---|---|
-| `src/README.md` | `32efa549fc6830eedcce527f02e4a71a4c7ae820e2c895b3cc0da2ad820b1ff3` | 2026-10-02 01:12:18.593 |
-| `src/index.html` | `e4a739e15ab5754b525aff8727341532379f71676e876c2ef5b33707f3fb4316` | 2026-10-02 01:11:56.510 |
-| `src/js/game.js` | `605be9211851e88c8ebf6e8e5fc6328c86842177122fd6611d9c9c920492f64c` | 2026-10-02 01:11:46.128 |
-| `src/js/levels.js` | `0086a27cd0dc480219e9403f48eafb97ba440a4bbf25c604c0d939f1965c67d8` | 2026-10-02 01:08:13.746 |
-| `src/js/physics.js` | `1169f037ff5b0f94ae82fea03e1f1286c51d2272524f33f25bcf19874513717a` | 2026-10-02 01:08:32.628 |
-| `src/js/sprites.js` | `76b457bdcf8f39eb75041a0c013e698dc9917d6cce8cf0d1a7125c1ea04c53e3` | 2026-10-02 01:11:09.050 |
-| `src/tests/levels.test.js` | `c143a4e2fc137d7dfd724451c4e920cab6ccee4e751c60894344a593ed148e76` | 2026-10-02 01:07:46.341 |
-| `src/tests/physics.test.js` | `5e97cdb810ebca8e51511ea75ceb5b18aaa9183a53ef9c0a545e985da154742a` | 2026-10-01 20:15:39.540 |
-| `src/tests/worlds.test.js` | `67400ae88b5312e8bfeb2d412c6d188e04b24ffd94a98f80f5e2ae7f47568baf` | 2026-10-02 01:07:47.498 |
+| `src/README.md` | `b6169d78b4f32dabbcf05f21304e1a28797a4d9ada058d5bddcb3cc6c2de48ec` | 2026-10-11 18:07:40 |
+| `src/index.html` | `540f41f4bc7ea366fec7298df200171bf72db84359eed40958678f970e219fbf` | 2026-10-11 18:06:45 |
+| `src/js/game.js` | `ad36d52e4324e1c5d1c6671df923d19f5c87bc5b2f21ef0bf66def0093dc8856` | 2026-10-11 18:06:37 |
+| `src/js/levels.js` | `3d52b97b709eb9f005d175eb54d65df69eb9880dc5830bfa6c1fd05fe4eb4161` | 2026-10-11 18:03:58 |
+| `src/js/physics.js` | `5b341083989cc16d900d7d89765cda8960a4bb3df8e3ba44bd326d536e7318df` | 2026-10-11 18:04:11 |
+| `src/js/save.js` | `cfaf21ab96d3bd473333a03f664b7d24cb4553e6b0a7bf812160d0bd90011d04` | 2026-10-11 18:04:58 |
+| `src/js/score.js` | `968723971cd0df59ba801c4970d49a46be7a7fbca81f9cdd7effe097aa06a05f` | 2026-10-11 18:04:57 |
+| `src/js/sprites.js` | `ad9ca1413ad7ab5bd46cd4ec33c24bca05eea2cd15580497fe0c82a1adf3f230` | 2026-10-11 18:05:23 |
+| `src/tests/campaign.test.js` | `d22cb931b62e320965f9d09e0b699a4ad6cbe32ee2495f5747f7e0fdf6f5c198` | 2026-10-11 18:03:03 |
+| `src/tests/levels.test.js` | `1824f288ac24b5ce7d6e66699f073f0cf07264e8f1ed4fa90fd1f3a3d69f0c8b` | 2026-10-11 18:04:37 |
+| `src/tests/physics.test.js` | `5e97cdb810ebca8e51511ea75ceb5b18aaa9183a53ef9c0a545e985da154742a` | 2026-10-01 20:15:39 |
+| `src/tests/score.test.js` | `556f3d4918165a34e33c50a10a64764ae029cc88ff1fbe4479fc2758e963ea26` | 2026-10-11 18:03:30 |
+| `src/tests/worlds.test.js` | `37ecc391177efc987918dc5ce19e0d5467d798ab4ad8f35ed3988805aceaf986` | 2026-10-02 01:37:21 |
 
-## Antes de la revalidación del ciclo 1 (2026-10-02)
+## Después de T08 (2026-10-11)
 
-Igual que la tabla de arriba, salvo:
+Recalculada después de la revisión: **idéntica** a la de antes (sha256 y fecha de los 13 archivos; `diff` sin diferencias).
 
-| Archivo | sha256 | Fecha de modificación |
-|---|---|---|
-| `src/js/sprites.js` | `7970b6ea8542c9c3b5dc7beb9dded8c7461baecf1dd1491a649bdec7dbbf9bb8` | 2026-10-02 01:21:30.824 |
+Además, `entregables/v2/` da los mismos 9 sha256 que la foto de cierre de v2 (`proyecto/v2/foto-src.md`) y `git status` no muestra cambios en `entregables/`.
 
-## Antes de la revisión del cambio del Asteroide (2026-10-02)
+## Cierre T11: copia a entregables/v3/ (2026-10-11)
 
-Foto completa (reemplaza a las anteriores para comparar después de esta revisión):
+Antes de copiar, `src/` coincidió con la foto de antes de T08 (13 de 13). Después de copiar, `src/` y `entregables/v3/` dan los mismos valores, y `entregables/v1/` y `entregables/v2/` (15 archivos) dieron los mismos sha256 antes y después.
 
-| Archivo | sha256 | Fecha de modificación |
-|---|---|---|
-| `src/README.md` | `7e6c0bb37988fea861062e7016fe988462ac2465f62c963b7c80d2755aed9f47` | 2026-10-02 01:38:08.712 |
-| `src/index.html` | `e4a739e15ab5754b525aff8727341532379f71676e876c2ef5b33707f3fb4316` | 2026-10-02 01:11:56.510 |
-| `src/js/game.js` | `605be9211851e88c8ebf6e8e5fc6328c86842177122fd6611d9c9c920492f64c` | 2026-10-02 01:11:46.128 |
-| `src/js/levels.js` | `80a936c73438bc24c6f010e1197baadcbe59784d4d9dd5cc92d9de12df800234` | 2026-10-02 01:37:28.407 |
-| `src/js/physics.js` | `1169f037ff5b0f94ae82fea03e1f1286c51d2272524f33f25bcf19874513717a` | 2026-10-02 01:08:32.628 |
-| `src/js/sprites.js` | `7970b6ea8542c9c3b5dc7beb9dded8c7461baecf1dd1491a649bdec7dbbf9bb8` | 2026-10-02 01:21:30.824 |
-| `src/tests/levels.test.js` | `5775f8bb5b543a06b8d46f7bf65b3431726c29ecccb29d2f1d76669f2f583198` | 2026-10-02 01:37:21.751 |
-| `src/tests/physics.test.js` | `5e97cdb810ebca8e51511ea75ceb5b18aaa9183a53ef9c0a545e985da154742a` | 2026-10-01 20:15:39.540 |
-| `src/tests/worlds.test.js` | `37ecc391177efc987918dc5ce19e0d5467d798ab4ad8f35ed3988805aceaf986` | 2026-10-02 01:37:21.751 |
-
-## Cierre T11: copia a entregables/v2/ (2026-10-02)
-
-Tomada al copiar; antes solo existía en archivos temporales de la sesión. Verificada de nuevo el 2026-10-02, después del cierre: `src/`, `entregables/v2/` y `entregables/v1/` siguen dando estos mismos valores.
-
-| Archivo (relativo a `src/` y a `entregables/v2/`) | sha256 en `src/` | sha256 en `entregables/v2/` |
-|---|---|---|
-| `README.md` | `7e6c0bb37988fea861062e7016fe988462ac2465f62c963b7c80d2755aed9f47` | `7e6c0bb37988fea861062e7016fe988462ac2465f62c963b7c80d2755aed9f47` |
-| `index.html` | `e4a739e15ab5754b525aff8727341532379f71676e876c2ef5b33707f3fb4316` | `e4a739e15ab5754b525aff8727341532379f71676e876c2ef5b33707f3fb4316` |
-| `js/game.js` | `605be9211851e88c8ebf6e8e5fc6328c86842177122fd6611d9c9c920492f64c` | `605be9211851e88c8ebf6e8e5fc6328c86842177122fd6611d9c9c920492f64c` |
-| `js/levels.js` | `80a936c73438bc24c6f010e1197baadcbe59784d4d9dd5cc92d9de12df800234` | `80a936c73438bc24c6f010e1197baadcbe59784d4d9dd5cc92d9de12df800234` |
-| `js/physics.js` | `1169f037ff5b0f94ae82fea03e1f1286c51d2272524f33f25bcf19874513717a` | `1169f037ff5b0f94ae82fea03e1f1286c51d2272524f33f25bcf19874513717a` |
-| `js/sprites.js` | `7970b6ea8542c9c3b5dc7beb9dded8c7461baecf1dd1491a649bdec7dbbf9bb8` | `7970b6ea8542c9c3b5dc7beb9dded8c7461baecf1dd1491a649bdec7dbbf9bb8` |
-| `tests/levels.test.js` | `5775f8bb5b543a06b8d46f7bf65b3431726c29ecccb29d2f1d76669f2f583198` | `5775f8bb5b543a06b8d46f7bf65b3431726c29ecccb29d2f1d76669f2f583198` |
-| `tests/physics.test.js` | `5e97cdb810ebca8e51511ea75ceb5b18aaa9183a53ef9c0a545e985da154742a` | `5e97cdb810ebca8e51511ea75ceb5b18aaa9183a53ef9c0a545e985da154742a` |
-| `tests/worlds.test.js` | `37ecc391177efc987918dc5ce19e0d5467d798ab4ad8f35ed3988805aceaf986` | `37ecc391177efc987918dc5ce19e0d5467d798ab4ad8f35ed3988805aceaf986` |
-
-### entregables/v1/ (comprobado sin cambios al cerrar v2)
-
-| Archivo | sha256 |
+| Archivo (relativo a `src/` y a `entregables/v3/`) | sha256 en ambos |
 |---|---|
-| `entregables/v1/README.md` | `493f022b077e93a699d192cab9919a0b69ab421d8bb09041b8b99982385f685b` |
-| `entregables/v1/index.html` | `e45c6b3877a5ec09bb2bce205699870db2c14fd9b351d0779aaee429555826a1` |
-| `entregables/v1/js/game.js` | `bc77a7ff69e7a3ddadcb79b6606b7ff58a49bebf987e0bc01b7d025f3ce16db9` |
-| `entregables/v1/js/physics.js` | `0ee6dd99d7f9ea768abd3becb004dfa0eb1dce582b56399f4af98c40fa940aff` |
-| `entregables/v1/js/sprites.js` | `649aae9ace991cd35415ed1f8609f9f5f991ccb20dc6bb44af072470eef37566` |
-| `entregables/v1/tests/physics.test.js` | `5e97cdb810ebca8e51511ea75ceb5b18aaa9183a53ef9c0a545e985da154742a` |
+| `README.md` | `b6169d78b4f32dabbcf05f21304e1a28797a4d9ada058d5bddcb3cc6c2de48ec` |
+| `index.html` | `540f41f4bc7ea366fec7298df200171bf72db84359eed40958678f970e219fbf` |
+| `js/game.js` | `ad36d52e4324e1c5d1c6671df923d19f5c87bc5b2f21ef0bf66def0093dc8856` |
+| `js/levels.js` | `3d52b97b709eb9f005d175eb54d65df69eb9880dc5830bfa6c1fd05fe4eb4161` |
+| `js/physics.js` | `5b341083989cc16d900d7d89765cda8960a4bb3df8e3ba44bd326d536e7318df` |
+| `js/save.js` | `cfaf21ab96d3bd473333a03f664b7d24cb4553e6b0a7bf812160d0bd90011d04` |
+| `js/score.js` | `968723971cd0df59ba801c4970d49a46be7a7fbca81f9cdd7effe097aa06a05f` |
+| `js/sprites.js` | `ad9ca1413ad7ab5bd46cd4ec33c24bca05eea2cd15580497fe0c82a1adf3f230` |
+| `tests/campaign.test.js` | `d22cb931b62e320965f9d09e0b699a4ad6cbe32ee2495f5747f7e0fdf6f5c198` |
+| `tests/levels.test.js` | `1824f288ac24b5ce7d6e66699f073f0cf07264e8f1ed4fa90fd1f3a3d69f0c8b` |
+| `tests/physics.test.js` | `5e97cdb810ebca8e51511ea75ceb5b18aaa9183a53ef9c0a545e985da154742a` |
+| `tests/score.test.js` | `556f3d4918165a34e33c50a10a64764ae029cc88ff1fbe4479fc2758e963ea26` |
+| `tests/worlds.test.js` | `37ecc391177efc987918dc5ce19e0d5467d798ab4ad8f35ed3988805aceaf986` |

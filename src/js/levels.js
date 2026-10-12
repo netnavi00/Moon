@@ -11,6 +11,7 @@
   // gravity y wind en px/s² (wind positivo = hacia la derecha); fuel en unidades.
   // platform: x1–x2 es la posición inicial; con speed > 0 va y viene entre minX y maxX (px/s),
   // empezando hacia la derecha. theme es la llave de la paleta en sprites.js.
+  // Campos opcionales (mecánicas de v3, con el valor de la Luna si faltan): fuelRate, gusts, start.vx/vy.
   const LEVELS = Object.freeze([
     Object.freeze({
       id: 'luna',
@@ -41,6 +42,45 @@
       fuel: 45,
       start: Object.freeze({ x: 180, y: 30 }),
       platform: Object.freeze({ x1: 100, x2: 148, speed: 15, minX: 80, maxX: 240 }),
+    }),
+    // Mecánica: consumo propio (fuelRate, unidades/s; sin él, CONFIG.FUEL_RATE).
+    Object.freeze({
+      id: 'gigante',
+      name: 'Luna gigante',
+      theme: 'gigante',
+      gravity: 30,
+      wind: 0,
+      fuel: 90,
+      fuelRate: 30,
+      start: Object.freeze({ x: 170, y: 30 }),
+      platform: Object.freeze({ x1: 150, x2: 190, speed: 0 }),
+    }),
+    // Mecánica: ráfagas. Fases { steps, wind } que se repiten y se suman a wind (ver windAt en physics.js).
+    Object.freeze({
+      id: 'tormenta',
+      name: 'Tormenta',
+      theme: 'tormenta',
+      gravity: 20,
+      wind: 0,
+      fuel: 50,
+      gusts: Object.freeze([
+        Object.freeze({ steps: 60, wind: 15 }),
+        Object.freeze({ steps: 120, wind: -15 }),
+        Object.freeze({ steps: 60, wind: 15 }),
+      ]),
+      start: Object.freeze({ x: 152, y: 30 }),
+      platform: Object.freeze({ x1: 136, x2: 184, speed: 0 }),
+    }),
+    // Mecánica: velocidad inicial (start.vx, start.vy; sin ellas, 0). Sin gravedad.
+    Object.freeze({
+      id: 'aproximacion',
+      name: 'Aproximación',
+      theme: 'aproximacion',
+      gravity: 0,
+      wind: 0,
+      fuel: 30,
+      start: Object.freeze({ x: 24, y: 24, vx: 32, vy: 28 }),
+      platform: Object.freeze({ x1: 124, x2: 164, speed: 0 }),
     }),
   ]);
 

@@ -2,6 +2,7 @@
 // Script clásico: en el navegador queda como MoonPhysics global; en Node se carga con require.
 // Paso fijo de CONFIG.DT segundos; step no recibe tiempo y no modifica el estado que recibe.
 // El nivel y el número de paso son argumentos opcionales: sin ellos, todo se comporta como la Luna de v1.
+// Mecánicas opcionales del nivel (v3): fuelRate, gusts y start.vx/vy; si faltan, valen lo de la Luna.
 (function (root, factory) {
   const api = factory();
   if (typeof module === 'object' && module.exports) module.exports = api;
@@ -46,8 +47,8 @@
     return {
       x: level.start.x,
       y: level.start.y,
-      vx: 0,
-      vy: 0,
+      vx: level.start.vx ?? 0,
+      vy: level.start.vy ?? 0,
       angle: 0,
       fuel: level.fuel,
       status: 'flying',
@@ -65,6 +66,21 @@
     const u = (p.x1 - p.minX + p.speed * t * CONFIG.DT) % (2 * travel);
     const x1 = u <= travel ? p.minX + u : p.minX + 2 * travel - u;
     return { x1: x1, x2: x1 + w, vx: u <= travel ? p.speed : -p.speed };
+  }
+
+  // Viento del paso con n pasos dados antes: level.wind más la ráfaga de la fase en curso.
+  // gusts = [{ steps, wind }, ...] se repite cada Σ steps pasos; sin gusts, el viento es constante.
+  function windAt(level, n) {
+    const gusts = level.gusts;
+    if (!gusts) return level.wind;
+    let total = 0;
+    for (const g of gusts) total += g.steps;
+    let p = n % total;
+    for (const g of gusts) {
+      if (p < g.steps) return level.wind + g.wind;
+      p -= g.steps;
+    }
+    return level.wind;
   }
 
   // Normaliza a (-180, 180].
@@ -85,7 +101,7 @@
     return { status: 'landed', crashReason: null };
   }
 
-  // n = pasos dados antes de este (0 en el primero); solo lo usa la plataforma móvil.
+  // n = pasos dados antes de este (0 en el primero); lo usan la plataforma móvil y las ráfagas.
   function step(state, input, level = DEFAULT_LEVEL, n = 0) {
     // 1. Partida terminada: no cambia nada.
     if (state.status !== 'flying') return { ...state };
@@ -103,11 +119,11 @@
     if (input.thrust && s.fuel > 0) {
       ax += Math.sin(s.angle * DEG) * CONFIG.THRUST;
       ay += -Math.cos(s.angle * DEG) * CONFIG.THRUST;
-      s.fuel = Math.max(0, s.fuel - CONFIG.FUEL_RATE * dt);
+      s.fuel = Math.max(0, s.fuel - (level.fuelRate ?? CONFIG.FUEL_RATE) * dt);
     }
 
-    // 4. Viento y gravedad del nivel.
-    ax += level.wind;
+    // 4. Viento (con ráfagas, según el número de paso) y gravedad del nivel.
+    ax += windAt(level, n);
     ay += level.gravity;
 
     // 5–6. Euler semi-implícito: velocidad y luego posición con la velocidad nueva.
@@ -131,5 +147,5 @@
     return s;
   }
 
-  return { CONFIG, createState, step, evaluateLanding, platformAt };
+  return { CONFIG, createState, step, evaluateLanding, platformAt, windAt };
 });

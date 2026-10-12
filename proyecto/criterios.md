@@ -1,194 +1,185 @@
-# Criterios de aceptación: Mensajero Orbital v2
+# Criterios de aceptación: Mensajero Orbital v3
 
-> Estado: **aprobado por Nanni el 2026-10-02** (C-38 y C-39 sujetos a confirmarse en la primera corrida). Derivados de `proyecto/brief.md` (aprobado 2026-10-02).
+> Estado: **decididos en modo autónomo** el 2026-10-11 (`proyecto/autorizacion-v3.md`). Las secuencias C-52 a C-54 están calculadas a mano y se confirman en la primera corrida. Derivados de `proyecto/brief.md` (v3).
 > Tipos: **A** = prueba automática (`node --test "src/tests/*.test.js"`), **E** = revisión estática del revisor, **M** = verificación manual de Nanni.
 > Tolerancia numérica en pruebas A: `1e-9`, salvo que se indique otra.
-> Los criterios de v1 (`proyecto/v1/criterios.md`) siguen vigentes con su mismo ID. Los que cambian en v2 se reescriben aquí completos y llevan **(v2)**.
+> Siguen vigentes con su ID los criterios de v1 (`proyecto/v1/criterios.md`) y de v2 (`proyecto/v2/criterios.md`), salvo los que aquí se reescriben con **(v3)**. C-36 de v2 queda acotada a los niveles 1 a 3 y la sustituye C-47 para la campaña completa.
 
 ## 1. Valores
 
-### 1.1 `CONFIG` (`src/js/physics.js`): sin cambios
+### 1.1 `CONFIG`: sin cambios
+Mismos nombres y valores que en v1 y v2 (`proyecto/v2/criterios.md` §1.1). Empuje, giro, caja de colisión, suelo y límites de aterrizaje son iguales en los 6 niveles y solo viven en `CONFIG`.
 
-Los mismos nombres y valores de `proyecto/v1/criterios.md` §1: `DT` 1/60, `WIDTH` × `HEIGHT` 320 × 180, `GRAVITY` 20, `THRUST` 50, `ROT_SPEED` 90, `FUEL_START` 100, `FUEL_RATE` 20, `SHIP_HALF` 6, `START_X`/`START_Y` 160/30, `GROUND_Y` 160, `PLATFORM_X1`/`PLATFORM_X2` 120/200, `MAX_LAND_VY` 15, `MAX_LAND_VX` 10, `MAX_LAND_ANGLE` 10. Empuje, giro, consumo, caja de colisión, suelo y límites de aterrizaje son **iguales en los 3 niveles** y solo viven en `CONFIG`.
+### 1.2 Niveles 1 a 3: idénticos a v2
+`LEVELS[0..2]` es `deepStrictEqual` a `LEVELS` de `entregables/v2/js/levels.js` (tabla en `proyecto/v2/criterios.md` §1.2). No llevan ninguno de los campos opcionales nuevos.
 
-### 1.2 Niveles (`LEVELS` en `src/js/levels.js`)
+### 1.3 Niveles 4 a 6 (`LEVELS[3..5]` en `src/js/levels.js`)
 
-| Campo | 1 · Luna | 2 · Marte | 3 · Asteroide |
+| Campo | 4 · Luna gigante | 5 · Tormenta | 6 · Aproximación |
 |---|---|---|---|
-| `id` / `name` / `theme` | `'luna'` / `'Luna'` / `'luna'` | `'marte'` / `'Marte'` / `'marte'` | `'asteroide'` / `'Asteroide'` / `'asteroide'` |
-| `gravity` (px/s², hacia abajo) | 20 | 20 | 8 |
-| `wind` (px/s², + = derecha) | 0 | −4 (sopla a la izquierda) | 0 |
-| `fuel` (unidades) | 100 | 80 | 45 (antes 70; cambio aprobado por Nanni el 2026-10-02) |
-| `start` (x, y) | 160, 30 | 180, 30 | 180, 30 |
-| `platform.x1`–`x2` (ancho) | 120–200 (80) | 140–204 (64) | 100–148 (48), posición inicial |
-| `platform.speed` (px/s) | 0 | 0 | 15, empieza hacia la derecha (antes 8; cambio aprobado por Nanni el 2026-10-02) |
-| `platform.minX`–`maxX` | — | — | 80–240 |
+| `id` / `name` / `theme` | `'gigante'` / `'Luna gigante'` / `'gigante'` | `'tormenta'` / `'Tormenta'` / `'tormenta'` | `'aproximacion'` / `'Aproximación'` / `'aproximacion'` |
+| `gravity` (px/s²) | 30 | 20 | 0 |
+| `wind` (px/s²) | 0 | 0 | 0 |
+| `fuel` | 90 | 50 | 30 |
+| `fuelRate` (unidades/s, opcional) | **30** | — | — |
+| `gusts` (opcional) | — | **`[{ steps: 60, wind: 15 }, { steps: 120, wind: -15 }, { steps: 60, wind: 15 }]`** | — |
+| `start` | `{ x: 170, y: 30 }` | `{ x: 152, y: 30 }` | **`{ x: 24, y: 24, vx: 32, vy: 28 }`** |
+| `platform` (ancho) | `{ x1: 150, x2: 190, speed: 0 }` (40) | `{ x1: 136, x2: 184, speed: 0 }` (48) | `{ x1: 124, x2: 164, speed: 0 }` (40) |
 
-Las plataformas quietas llevan solo `x1`, `x2` y `speed: 0`. La móvil agrega `minX` y `maxX`.
+`LEVELS.length === 6`; `id` en orden `luna`, `marte`, `asteroide`, `gigante`, `tormenta`, `aproximacion`.
 
-### 1.3 Regla de dificultad (requisito 16), comprobada contra los datos
+### 1.4 Mecánicas opcionales (valor por defecto = Luna)
 
-Para cada nivel `i` ≥ 2, comparado con el nivel `i − 1`:
-- `fuel[i] ≤ fuel[i−1]` y `ancho[i] ≤ ancho[i−1]` (ancho = `x2 − x1`), y al menos uno de los dos es estrictamente menor.
-  - Marte vs. Luna: 80 < 100 y 64 < 80. Asteroide vs. Marte: 45 < 80 y 48 < 64.
-- Reto propio: Marte tiene `wind ≠ 0`; Asteroide tiene `platform.speed > 0`.
-- Límites de aterrizaje iguales: ningún nivel tiene campos de límites (`MAX_LAND_*` o equivalentes); se usan los de `CONFIG`.
+| Campo | Significado | Si falta |
+|---|---|---|
+| `fuelRate` | consumo por segundo de empuje | `CONFIG.FUEL_RATE` (20) |
+| `gusts` | lista de fases `{ steps, wind }` que se repite; se **suma** a `wind` | sin ráfagas |
+| `start.vx`, `start.vy` | velocidad inicial | 0 |
 
-### 1.4 Plataforma móvil: `platformAt(level, t)`
+**`windAt(level, n)`** (nueva, en `physics.js`): viento del paso con `n` pasos dados antes. Sin `gusts` → `level.wind`. Con `gusts`: `T = Σ steps`, `p = n mod T`; la fase `i` cubre `[s_i, s_i + steps_i)` con `s_i` la suma de las anteriores; regresa `level.wind + gusts[i].wind`. Tormenta: `T = 240`; n ∈ [0, 59] → +15, [60, 179] → −15, [180, 239] → +15, y se repite.
 
-`t` = pasos transcurridos (entero ≥ 0). Regresa `{ x1, x2, vx }`.
-- Si `speed === 0`: `{ x1, x2, vx: 0 }` del dato.
-- Si no, con `w = x2 − x1`, `D = (maxX − minX) − w` y `u = ((x1 − minX) + speed · t · DT) mod 2D`:
-  - Si `u ≤ D`: `x1(t) = minX + u`, `vx = +speed`.
-  - Si `u > D`: `x1(t) = minX + 2D − u`, `vx = −speed`.
-  - `x2(t) = x1(t) + w`.
-- En Asteroide: `w = 48`, `D = 112`, `u = 20 + 15t/60 = 20 + t/4`, periodo de 896 pasos. Va a la derecha hasta t = 368 y a la izquierda de 368 a 816.
+**Cambios en `step(state, input, level, n)`**: consumo `(level.fuelRate ?? CONFIG.FUEL_RATE) · DT`; viento `windAt(level, n)` en lugar de `level.wind`. **`createState(level)`**: `vx = level.start.vx ?? 0`, `vy = level.start.vy ?? 0` (los mismos 8 campos). Lo demás, igual que v2.
 
-### 1.5 Contratos
+### 1.5 Regla de dificultad (req. 10)
+Mecánicas reconocidas (las que la física no tenía antes de su nivel): viento (`wind ≠ 0`), plataforma móvil (`platform.speed > 0`), consumo propio (`fuelRate` presente), ráfagas (`gusts` presente), velocidad inicial (`start.vx` o `start.vy` ≠ 0). Cambiar el valor de un campo base (gravedad, combustible, ancho, inicio) no es mecánica.
+- Cada nivel trae **como máximo una** mecánica que no aparezca en ningún nivel anterior. Luna 0; Marte: viento; Asteroide: plataforma móvil; Luna gigante: consumo; Tormenta: ráfagas; Aproximación: velocidad inicial.
+- La secuencia de referencia de cada nivel termina con `fuel ≥ 10` (C-38, C-39, C-52 a C-54; la de la Luna termina en 64).
+- Ningún nivel tiene límites de aterrizaje propios.
+- La dificultad final se confirma jugando (C-M8).
 
-- `createState(level?)` → los 8 campos de v1 `{ x, y, vx, vy, angle, fuel, status, crashReason }` en todos los niveles; `x`, `y` y `fuel` salen del nivel. Sin argumento: idéntico a v1.
-- `step(state, input, level?, n?)` → `step.length === 2`. Sin `level` usa la Luna armada desde `CONFIG`; `n` (por defecto 0) = pasos dados antes de este. Orden del paso en `plan.md` §3. Si toca suelo, evalúa contra `platformAt(level, n + 1)`.
-- `evaluateLanding(state, platform?)` → igual que v1; `platform = { x1, x2, vx }`, por defecto `{ x1: 120, x2: 200, vx: 0 }`. `off_platform` contra `platform.x1/x2`; `speed_h` con `|state.vx − platform.vx| > 10`.
-- `nextLevel(n, status)` (en `levels.js`) → `'landed'`: `n + 1`, o `null` si `n === LEVELS.length`; `'crashed'`: `n`; otro `status`: lanza error.
-- `physics.js` exporta `CONFIG`, `createState`, `step`, `evaluateLanding` y `platformAt`. `levels.js` exporta `LEVELS` y `nextLevel`.
+### 1.6 Puntaje (`src/js/score.js`, global `MoonScore`)
+`scoreLanding(state, level, platform, steps)`:
+- Si `state.status !== 'landed'` → `null` (chocar no da puntos ni resta).
+- `precision = round(500 · (1 − |x − c| / (w/2)))`, con `c = (x1 + x2)/2` y `w = x2 − x1` de `platform` (la plataforma en el paso del contacto), acotado a [0, 500].
+- `fuel = round(300 · state.fuel / level.fuel)`, acotado a [0, 300].
+- `time = max(0, 200 − floor(steps / 4))`, donde `steps` = pasos de física desde el inicio del intento hasta el contacto, incluido.
+- `total = precision + fuel + time` (máximo 1000). Regresa `{ precision, fuel, time, total }`.
 
-### 1.6 Orden de scripts en `src/index.html`
+`campaignTotal(best, levels)` = suma de `best[level.id]` de los niveles de `levels` (los que falten cuentan 0; las llaves desconocidas se ignoran). **Total de campaña = suma de los mejores puntajes por nivel** (D-07). `SCORE` exporta las constantes 500, 300, 200 y 4.
 
-Todos clásicos (sin `type="module"`), en este orden exacto:
-1. `https://cdn.jsdelivr.net/npm/phaser@3.80.1/dist/phaser.min.js`
-2. `js/physics.js`
-3. `js/levels.js`
-4. `js/sprites.js`
-5. `js/game.js`
+### 1.7 Guardado (`src/js/save.js`, global `MoonSave`)
+- Llave `STORAGE_KEY = 'mensajero-orbital'`. Forma: `{ unlocked: n, best: { [id]: entero } }`. Vacío: `{ unlocked: 1, best: {} }`.
+- `parseSave(text, levels)`: JSON inválido o nulo → vacío. `unlocked` entero en [1, `levels.length`] (si se pasa, se acota; si no es entero ≥ 1, vale 1). `best` solo con `id` conocidos y enteros ≥ 0.
+- `recordLanding(save, n, levels, score)` → guardado **nuevo** (no modifica el recibido): `unlocked = max(unlocked, min(n + 1, levels.length))`; `best[id] = max(best[id] ?? 0, score.total)`.
+- `loadSave(storage, levels)`, `writeSave(storage, save)` y `clearSave(storage)`: todo acceso a `storage` va en try/catch; con `storage` nulo o que lanza, `loadSave` regresa vacío y `writeSave`/`clearSave` regresan `false`, sin lanzar.
+- `resolveStart(search, save, levels)` → `{ level, persist, reset }`:
+  - Sin parámetros: `{ level: save.unlocked, persist: true, reset: false }`.
+  - `?nuevo`: `reset: true`, nivel 1, `persist: true`.
+  - `?nivel=N` (con o sin `?nuevo`): `level = N` si es entero en [1, `levels.length`], si no 1; `persist: false`. `reset` es `true` solo si viene `?nuevo`.
+
+### 1.8 Orden de scripts en `src/index.html` (v3)
+Todos clásicos, en este orden: 1) `https://cdn.jsdelivr.net/npm/phaser@3.80.1/dist/phaser.min.js`, 2) `js/physics.js`, 3) `js/levels.js`, 4) `js/score.js`, 5) `js/save.js`, 6) `js/sprites.js`, 7) `js/game.js`.
 
 ## 2. Criterios automáticos (A)
 
-### 2.1 Heredados de v1
-
+### 2.1 Heredados
 | ID | Criterio |
 |---|---|
-| C-01 a C-14 | Los de `proyecto/v1/criterios.md` §2, en `src/tests/physics.test.js` **sin cambios**. |
+| C-01 a C-14 | `src/tests/physics.test.js` de v1, **sin cambios**. |
+| C-27, C-29 a C-35, C-38 a C-41 | Los de v2 (`src/tests/worlds.test.js`), sin cambios. |
+| C-26 (v3) | `require('../js/levels.js')` exporta `LEVELS` (6 entradas) y `nextLevel`; `id` y `name` en el orden de §1.3. |
+| C-28 (v3) | Como v2, pero el estado inicial `vx = vy = 0` se comprueba en los niveles 1 a 3 (los nuevos los cubren C-46 y C-51). |
+| C-36 (v3) | Regla de dificultad de v2 aplicada **solo** a los niveles 1 a 3; ningún nivel tiene límites de aterrizaje. |
+| C-37 (v3) | `nextLevel`: (1,'landed') → 2; (2,'landed') → 3; (3,'landed') → 4; (6,'landed') → `null`; (n,'crashed') → n para 1, 2, 3 y 6; (1,'flying') lanza error. |
 
-### 2.2 Nuevos (en `src/tests/levels.test.js` y `src/tests/worlds.test.js`)
+Los cambios a C-26, C-28, C-36 y C-37 se hacen en los tests de v2 **solo después** de ver que fallan por haber 6 niveles (regla 2 de la autorización), y se registran en la bitácora con la falla observada.
 
-| ID | Criterio | Cómo se prueba | Esperado |
-|---|---|---|---|
-| C-26 | Niveles cargan con `require` | `require('../js/levels.js')` | Exporta `LEVELS` (3 entradas) y `nextLevel`; `id` en orden `luna`, `marte`, `asteroide`; `name` `Luna`, `Marte`, `Asteroide` |
-| C-27 | Test de v1 intacto | sha256 de `src/tests/physics.test.js` con `node:crypto` | `5e97cdb810ebca8e51511ea75ceb5b18aaa9183a53ef9c0a545e985da154742a` (`proyecto/regresion-v1.md`) |
-| C-28 | Datos y estado de la Luna | Comparar `LEVELS[0]` contra la tabla §1.2 y contra `CONFIG`; `createState(LEVELS[0])` vs. `createState()`; `createState(L)` para los 3 | Luna = gravedad 20, viento 0, combustible 100, inicio 160,30, plataforma 120–200 quieta, y coincide con `CONFIG`. `createState(LEVELS[0])` `deepStrictEqual` `createState()`. Para cada nivel: exactamente los 8 campos, con `x`, `y` y `fuel` del nivel |
-| C-29 | La Luna con datos es idéntica a v1 | Secuencia de C-11 corrida dos veces: con `step(s, input)` y con `step(s, input, LEVELS[0], n)` | Estados `deepStrictEqual` **en cada paso**, y el final `landed` |
-| C-30 | `evaluateLanding` con plataforma | Estado con `y = 154`, `vy = 0`, `angle = 0`. Con `{ x1: 140, x2: 204, vx: 0 }` y `vx = 0`: x = 139.99, 140, 204, 204.01. Con `{ x1: 100, x2: 148, vx: 8 }` y `x = 120`: vx = 8, 18, 18.01, −2, −2.01, 0 | x: `off_platform`, `landed`, `landed`, `off_platform`. vx: `landed`, `landed`, `speed_h`, `landed`, `speed_h`, `landed` |
-| C-31 | Viento de Marte | `createState(MARTE)`, 60 pasos sin teclas, con `n` contando | vx = −4, vy = 20, x = 180 − 2.0333… (= 177.96666666…), fuel = 80 exacto |
-| C-32 | El viento puede sacar a la nave | Estado con x = 6.0005, y = 90, vx = 0, vy = 0; 1 paso sin teclas con Marte y con Luna | Marte → `crashed` / `'out_of_bounds'`; Luna → `flying` |
-| C-33 | Gravedad del Asteroide | `ASTEROIDE.gravity < LEVELS[0].gravity`; `createState(ASTEROIDE)`, 60 pasos sin teclas | 8 < 20; vy = 8, vx = 0 |
-| C-34 | Posición de la plataforma móvil | `platformAt(ASTEROIDE, t)` | t=0 → x1 100, vx +15; t=60 → 115, +15; t=368 → 192 (extremo derecho); t=400 → 184, −15; t=575 → 140.25, −15; t=816 → 80 (extremo izquierdo); t=856 → 90, +15. En todos, x2 = x1 + 48. Plataformas quietas: `platformAt(LUNA, 1000)` = `{ x1: 120, x2: 200, vx: 0 }` |
-| C-35 | Contacto con la plataforma móvil usa el paso `n + 1` | `step` con Asteroide y `n = 0` desde y = 153.99, vy = 5, vx = 15, angle = 0 (plataforma en t=1: x1 = 100.25; la nave avanza 0.25 px) | x = 99.9 → `crashed` / `'off_platform'`; x = 100.1 → `landed`. *Nota explicativa (no son aserciones de la prueba; decisión de Nanni del 2026-10-02): la nave avanza 0.25 px en el paso y queda en 100.15 y 100.35; con la plataforma de t=0 (x1 = 100) la primera habría aterrizado, por eso distingue n de n + 1; la vx relativa es 15 − 15 = 0.* |
-| C-36 | Regla de dificultad | Recorrer `LEVELS` con la regla de §1.3 | Se cumple para Marte y Asteroide; ningún nivel tiene campos de límites de aterrizaje |
-| C-37 | Progresión | `nextLevel` | (1,'landed') → 2; (2,'landed') → 3; (3,'landed') → `null`; (1,'crashed') → 1; (2,'crashed') → 2; (3,'crashed') → 3; (1,'flying') lanza error |
-| C-38 | Secuencia fija de Marte | §2.3 | `landed` en ≤ 600 pasos; vy ∈ [9.5, 12]; vx ∈ [−3, 1]; \|angle\| ≤ 1e-9; fuel = 40 ± 0.001; x ∈ [170, 178] |
-| C-39 | Secuencia fija del Asteroide | §2.3 | `landed` en ≤ 600 pasos, con pasos ∈ [570, 580]; vy ∈ [8, 10]; x ∈ [150, 161]; vx = −15; \|angle\| ≤ 1e-9; fuel = 45 − 86/3 (16.333…) ± 0.001; vx de la plataforma en el paso final = −15 |
-| C-40 | Determinismo por nivel | Correr C-38 y C-39 dos veces cada una | Resultados `deepStrictEqual` |
-| C-41 | Pureza y fin con nivel | `step(s, ALL, MARTE, 5)` y `step(s, ALL, ASTEROIDE, 5)`; además, desde estados `landed` y `crashed` | No modifica `s` ni el objeto del nivel (comparar contra `structuredClone`). Terminado → estado idéntico al recibido |
+### 2.2 Nuevos (en `src/tests/campaign.test.js` y `src/tests/score.test.js`)
 
-### 2.3 Secuencias fijas (calculadas a mano)
-
-Pasos numerados desde 1. Cada prueba lleva su contador: en el paso k se llama `step(s, input, nivel, k − 1)`. Se corre hasta que `status !== 'flying'` o 600 pasos.
-
-**Luna:** la de C-11, sin cambios (C-29).
-
-**Marte:**
-
-| Pasos | Teclas | Qué pasa |
+| ID | Criterio | Esperado |
 |---|---|---|
-| 1–124 | ninguna | Cae; el viento la empuja a la izquierda |
-| 125–144 | → | Gira a 30° (20 × 1.5°), sin empuje |
-| 145–192 | ↑ | 48 pasos de empuje inclinado: compensa el viento y frena |
-| 193–212 | ← | Regresa a 0°, sin empuje |
-| 213–284 | ↑ | 72 pasos de frenado con la nave derecha |
-| 285–… | ninguna | Cae hasta tocar |
+| C-44 | Niveles 1 a 3 = v2 (datos) | `LEVELS.slice(0, 3)` `deepStrictEqual` `LEVELS` de `entregables/v2/js/levels.js`; ninguno trae `fuelRate`, `gusts`, `start.vx` ni `start.vy` |
+| C-45 | Niveles 1 a 3 = v2 (física) | Con las secuencias de C-11, C-38 y C-39, `step` de `src/` y de `entregables/v2/js/physics.js` dan estados `deepStrictEqual` en cada paso; `createState` igual en los 3 |
+| C-46 | Datos de los niveles 4 a 6 | Iguales a la tabla de §1.3; `createState(L)` tiene los 8 campos en los 6 niveles; en 4 a 6: `x`, `y`, `fuel` del nivel, `vx = start.vx ?? 0`, `vy = start.vy ?? 0` |
+| C-47 | Regla de dificultad v3 | Recorriendo `LEVELS` con las mecánicas de §1.5: cada nivel estrena ≤ 1; el conjunto estrenado es exactamente el de §1.5; ningún nivel tiene campos `land`/`limit` |
+| C-48 | Consumo por nivel | Luna gigante, 60 pasos con ↑: fuel = 60, vy = −20, y = 30 − 61/6. Luna, 60 pasos con ↑: fuel = 80 (consumo por defecto) |
+| C-49 | `windAt` | Tormenta: n = 0, 59 → 15; 60, 179 → −15; 180, 239 → 15; 240 → 15; 300 → −15; 479 → 15. Marte (n = 0 y 1000) → −4; Luna → 0 |
+| C-50 | Ráfagas en la física | Tormenta, sin teclas: tras 60 pasos vx = 15, x = 159.625, vy = 20, fuel = 50; tras 180 pasos vx = −15, x = 159.375 |
+| C-51 | Velocidad inicial y gravedad 0 | `gravity === 0`; `createState(APROX)` con vx 32, vy 28; tras 60 pasos sin teclas: vx = 32, vy = 28, x = 56, y = 52 |
+| C-52 | Secuencia de Luna gigante (§2.3) | `landed`; pasos ∈ [246, 250]; vy ∈ [7, 11]; x = 170; vx = 0; \|angle\| ≤ 1e-9; fuel = 21 ± 0.001 (≥ 10) |
+| C-53 | Secuencia de Tormenta (§2.3) | `landed`; pasos ∈ [259, 263]; vy ∈ [7.5, 10]; vx ∈ [4.5, 6]; x ∈ [152, 154]; \|angle\| ≤ 1e-9; fuel = 50 − 94/3 (18.667) ± 0.001 (≥ 10) |
+| C-54 | Secuencia de Aproximación (§2.3) | `landed`; pasos ∈ [383, 391]; vy ∈ [9.5, 9.8]; vx ∈ [0, 0.5]; x ∈ [141, 144.5]; \|angle\| ≤ 1e-9; fuel = 30 − 44/3 (15.333) ± 0.001 (≥ 10) |
+| C-55 | Determinismo y pureza (4 a 6) | Cada secuencia corrida dos veces da lo mismo; `step(s, ALL, L, 5)` no modifica `s` ni `L`; desde `landed`/`crashed` regresa el mismo estado |
+| C-56 | `physics.js` exporta | `CONFIG`, `createState`, `step`, `evaluateLanding`, `platformAt`, `windAt`; `step.length === 2` |
+| C-57 | `scoreLanding` | Plataforma `{ x1: 150, x2: 190 }`, nivel con fuel 90: crashed → `null`; (x 170, fuel 90, 0 pasos) → 500/300/200 = 1000; (180, 45, 400) → 250/150/100 = 500; (150, 0, 800) → 0/0/0 = 0; (175, 21, 248) → 375/70/138 = 583; 1000 pasos → time 0; 3 pasos → 200; 4 → 199. Con `{ x1: 140.25, x2: 188.25 }` y x = 164.25 → precision 500. No modifica sus argumentos |
+| C-58 | `campaignTotal` | `{ luna: 700, marte: 500, zzz: 999 }` → 1200; `{}` → 0 |
+| C-59 | `parseSave` y `recordLanding` | Casos de §1.7: nulo, JSON roto, unlocked 99 → 6, 0 → 1, 2.5 → 1, `best` con id desconocido, negativo o no entero → se descarta. `recordLanding`: 1ª vez nivel 1 con 700 → `{ unlocked: 2, best: { luna: 700 } }`; luego 600 → sigue 700; nivel 6 → unlocked 6; nivel 2 con unlocked 5 → sigue 5; no modifica el guardado recibido |
+| C-60 | Almacenamiento que falla | Con `storage` nulo o cuyos métodos lanzan: `loadSave` → vacío, `writeSave` → `false`, `clearSave` → `false`, sin lanzar. Con uno que funciona: `writeSave` guarda `JSON.stringify(save)` en `STORAGE_KEY` y `loadSave` lo regresa igual; `clearSave` lo borra |
+| C-61 | `resolveStart` | `''` con unlocked 4 → `{ 4, persist: true, reset: false }`; `'?nuevo'` → `{ 1, true, true }`; `'?nivel=2'` → `{ 2, false, false }`; `'?nivel=9'` y `'?nivel=abc'` → `{ 1, false, false }`; `'?nuevo&nivel=3'` → `{ 3, false, true }` |
+| C-62 | Temas | Con `sprites.js` cargado en Node: cada `theme` de `LEVELS` existe en `THEMES`; cada tema usa solo índices 0 a 8; `SHIP_COLORS` solo 9 a F; paleta (tema + nave) ≤ 16 colores |
+| C-63 | Puntaje de la referencia | `scoreLanding` del final de C-52 con `platformAt(GIGANTE, pasos)` → `{ precision: 500, fuel: 70, time: 138, total: 708 }` |
 
-**Asteroide:**
+### 2.3 Secuencias de referencia (calculadas a mano el 2026-10-11)
+En el paso k se llama `step(s, input, nivel, k − 1)`; se corre hasta que `status !== 'flying'` o 900 pasos.
 
-| Pasos | Teclas | Qué pasa |
-|---|---|---|
-| 1–260 | ninguna | Cae (gravedad 8) |
-| 261–310 | ↑ | 50 pasos de frenado con la nave derecha |
-| 311–440 | ninguna | Caída lenta; la plataforma ya va a la izquierda desde el paso 368 |
-| 441–460 | ← | Gira a −30°, sin empuje |
-| 461–496 | ↑ | 36 pasos de empuje inclinado: llega a vx = −15 (igual que la plataforma) y frena |
-| 497–516 | → | Regresa a 0°, sin empuje |
-| 517–… | ninguna | Cae hasta tocar; nave y plataforma van juntas a −15 |
+| Nivel | Pasos y teclas |
+|---|---|
+| Luna gigante | 1–110 nada; 111–… ↑ hasta tocar |
+| Tormenta | 1–164 nada; 165–258 ↑; 259–… nada |
+| Aproximación | 1–160 nada; 161–200 ←; 201–244 ↑; 245–284 →; 285–… nada |
 
-### 2.4 Referencia del cálculo (Euler semi-implícito, aceleración constante por fase)
+Cálculo por fases con fórmulas cerradas (`v = v0 + a·k/60`, `Δ = k·v0/60 + a·k(k+1)/7200`), sin usar `physics.js`. Contacto cuando `y ≥ 154`.
 
-Por fase de `k` pasos con aceleración `a` y velocidad inicial `v0`: `v = v0 + a·k/60` y `Δ = k·v0/60 + a·k(k+1)/7200`. Contacto cuando `y ≥ 154`.
+**Luna gigante** (g = 30; con ↑, `ay = −20`; consumo 0.5 por paso):
 
-**Marte** (vertical: gravedad 20; con la nave a 30°, `ay = 20 − 50·cos 30° = −23.30127`. Horizontal: viento −4; a 30° con empuje, `ax = −4 + 50·sin 30° = +21`):
-
-| Fase | Pasos | vy al final | Δy | vx al final | Δx |
+| Fase | Pasos | Hasta | vy | y | Combustible |
 |---|---|---|---|---|---|
-| Caída | 124 | 41.33333 | 43.05556 | −8.26667 | −8.61111 |
-| Giro → | 20 | 48.00000 | 14.94444 | −9.60000 | −2.98889 |
-| Empuje a 30° | 48 | 29.35898 | 30.78825 | +7.20000 | −0.82000 |
-| Giro ← | 20 | 36.02565 | 10.95299 | +5.86667 | +2.16667 |
-| Frenado | 72 | 0.02565 | 21.33078 | +1.06667 | +4.12000 |
-| Caída | 32 | **10.69231** | 2.94701 | **−1.06667** | −0.01778 |
+| Caída | 110 | 110 | 55 | 80.875 | 90 |
+| Empuje hasta tocar | 138 | **248** | **9** | 154.09167 | **21** |
 
-- Al terminar el frenado (paso 284): y = 151.07203; el borde inferior queda en 157.07 (no toca).
-- Con 31 pasos de caída llegaría a y = 153.84 (no toca); con 32, y = 154.02 → **toca en el paso 316**.
-- La velocidad vertical nunca es negativa, así que no sube ni sale por arriba.
-- x final = 180 − 6.15111 = **173.85**: 33.8 px del borde izquierdo de la plataforma (140) y 30.2 px del derecho (204).
-- Ángulo final ≈ 0 (20 giros de ida y 20 de vuelta). Combustible: 80 − 120/3 = **40**.
-- Márgenes: vy 10.69 contra 15; |vx| 1.07 contra 10; si tocara un paso antes o después, vy quedaría entre 10.4 y 11.0 y seguiría dentro de [9.5, 12].
+x = 170 todo el tiempo (sin viento ni giro). Sensibilidad: cayendo 111 pasos toca con vy 13.17; con 109 no alcanza a tocar con empuje continuo.
 
-**Asteroide** (recalculado el 2026-10-02 por la plataforma a 15 px/s; gravedad 8; con la nave derecha `ay = 8 − 50 = −42`; a −30° con empuje `ay = 8 − 50·cos 30° = −35.30127` y `ax = 50·sin(−30°) = −25`):
+**Tormenta** (g = 20; con ↑, `ay = −30`; ráfagas de §1.4, por tramos):
 
-| Fase | Pasos | vy al final | Δy | y al final |
-|---|---|---|---|---|
-| Caída | 260 | 34.66667 | 75.40000 | 105.40000 |
-| Frenado | 50 | −0.33333 | 14.01389 | 119.41389 |
-| Caída | 130 | 17.00000 | 18.20000 | 137.61389 |
-| Giro ← | 20 | 19.66667 | 6.13333 | 143.74722 |
-| Empuje a −30° | 36 | −1.51410 | 5.26927 | 149.01649 |
-| Giro → | 20 | 1.15257 | −0.03803 | 148.97846 |
-| Caída | 59 | **9.01924** | 5.06670 | **154.04515** |
+| Fase | Pasos | Hasta | vy | y | vx | x | Combustible |
+|---|---|---|---|---|---|---|---|
+| Caída | 164 | 164 | 54.66667 | 105.16667 | −11 | 162.875 | 50 |
+| Empuje | 94 | 258 | 7.66667 | 153.60278 | 4.5 | 152.7125 | 18.66667 |
+| Caída | 3 | **261** | **8.66667** | 154.01944 | **5.25** | **152.9625** | 18.66667 |
 
-- Con 58 pasos en la última caída llegaría a y = 153.89 (no toca); con 59 → **toca en el paso 575**.
-- Antes de la última caída el borde inferior no pasa de ≈ 155.1; la subida después del frenado es de décimas de px.
-- Horizontal: vx = 0 hasta el paso 460; el empuje inclinado da Δx = −25·36·37/7200 = −4.625 y vx = −15; luego 79 pasos a −15 dan −19.75. **x final = 155.625.**
-- Plataforma en t = 575: u = 20 + 143.75 = 163.75 > 112 → x1 = 140.25, x2 = 188.25, va a −15. La nave queda a 15.4 px del borde izquierdo y 32.6 del derecho. Desde el paso 497 nave y plataforma van a −15, así que la distancia entre ellas no cambia.
-- vx relativa = −15 − (−15) = 0 (límite 10). Combustible: 45 − (50 + 36)/3 = **16.33** (sobran más de 10, por eso se queda en 45).
-- Si tocara un paso antes o después, vy quedaría entre 8.89 y 9.15, dentro de [8, 10].
+Contacto en la posición 21 del 2º ciclo (ráfaga +15, vx todavía chica). Vecinos: empuje de 93 o 95 pasos → vy 9.5 / 8.17, mismo rango.
 
-**Se confirman en la primera corrida.** Si una secuencia no da lo esperado, no se ajusta la prueba ni los rangos para que pase: pasa al diagnosticador para clasificar si falla la secuencia, el cálculo a mano o la física.
+**Aproximación** (g = 0; a −60° con ↑: `ax = −43.30127`, `ay = −25`):
+
+| Fase | Pasos | Hasta | vy | y | vx | x | Ángulo | Combustible |
+|---|---|---|---|---|---|---|---|---|
+| Deriva | 160 | 160 | 28 | 98.66667 | 32 | 109.33333 | 0 | 30 |
+| Giro ← | 40 | 200 | 28 | 117.33333 | 32 | 130.66667 | −60 | 30 |
+| Empuje | 44 | 244 | 9.66667 | 130.99167 | 0.24574 | 142.22548 | −60 | 15.33333 |
+| Giro → | 40 | 284 | 9.66667 | 137.43611 | 0.24574 | 142.38931 | 0 | 15.33333 |
+| Deriva | 103 | **387** | **9.66667** | 154.03056 | **0.24574** | **142.81115** | 0 | **15.33333** |
+
+La nave nunca sube (vy > 0) ni toca un borde; la plataforma 124–164 tiene su centro en 144.
+
+**Se confirman en la primera corrida.** Si una secuencia no da lo esperado, no se ajustan la prueba ni los rangos: se diagnostica si falla la secuencia, el cálculo o la física.
 
 ## 3. Criterios estáticos (E)
 
 | ID | Criterio |
 |---|---|
-| C-15 (v2) | `src/index.html` carga los 5 scripts de §1.6 en ese orden exacto, todos clásicos (sin `type="module"`), Phaser desde la URL fija. |
-| C-16 (v2) | `src/js/physics.js` y `src/js/levels.js` no mencionan `Phaser`, `window`, `document`, `Date`, `performance` ni `Math.random`. `levels.js` no hace `require` de otros archivos. |
-| C-17 | Igual que v1: sin carga de archivos de assets; texturas generadas en código; sin imágenes en `src/`. |
-| C-18 (v2) | Igual que v1 (acumulador con `CONFIG.DT`, tope de 5 pasos, sin `delta` a la física). Además: `game.js` pasa a `step` el nivel actual y `stepCount`, incrementa `stepCount` justo después de cada paso, lo reinicia a 0 al iniciar o reiniciar la escena, y dibuja la plataforma con `platformAt(level, stepCount)`. |
-| C-19 (v2) | Controles: ↑ propulsor, ← / → giro. R o Espacio en la pantalla final: tras choque reintenta el mismo nivel; tras aterrizar pasa al siguiente; en "misión completa" vuelve al nivel 1. El nivel siguiente sale de `nextLevel`, no de lógica escrita aparte. Espacio se captura para que no haga scroll. |
-| C-20 (v2) | Reintentar, avanzar o volver a empezar usan reinicio de escena (`createState(level)` con combustible del nivel), no `location.reload`. |
-| C-21 (v2) | HUD en HTML, leído del estado de física: igual que v1, más: fila "NIVEL N/3 · NOMBRE" (total desde `LEVELS.length`); Vel. horiz. muestra `state.vx − platformAt(level, stepCount).vx` y su color verde/rojo usa ese mismo valor contra `CONFIG.MAX_LAND_VX`; la barra de combustible es fracción del `fuel` del nivel; indicador de viento con flecha y magnitud solo cuando `level.wind !== 0` (decidido por el dato, no por el nombre del nivel). |
-| C-22 (v2) | `src/README.md`: lo de v1 más los 3 niveles, la regla de progresión, la ayuda `?nivel=N` (con ejemplo `index.html?nivel=2`) y el comando de pruebas. |
-| C-23 (v2) | `node --test "src/tests/*.test.js"` termina con 0 fallas y cubre C-01 a C-14 y C-26 a C-41. |
-| C-24 | Igual que v1: sin `package.json`, `node_modules` ni dependencias. |
-| C-25 (v2) | Arte: una paleta por tema (`luna`, `marte`, `asteroide`) con máximo 16 colores cada una; la nave (12×12) y la llama (4×4) son los mismos dibujos en los 3 y **usan solo los índices de paleta 9 a F** (los colores compartidos), así que su textura no depende del nivel con el que arranca el juego (ampliado por Nanni el 2026-10-02); semillas constantes; las medidas de fondo, suelo y plataforma se calculan desde `CONFIG` (`WIDTH`, `HEIGHT`, `GROUND_Y`) y del nivel (`x2 − x1`), sin 320, 180, 20, 80 ni 160 escritos a mano en `sprites.js`; llaves de textura distintas por tema; Asteroide genera más estrellas que Luna. |
-| C-42 | `?nivel=N`: `game.js` lo lee con `URLSearchParams`; si `N` no es un entero entre 1 y `LEVELS.length`, arranca en el nivel 1 sin error. |
-| C-43 | Pantallas finales: choque → "¡Choque!", motivo y "R o Espacio para reintentar". Aterrizaje con nivel siguiente → "¡Aterrizaje exitoso!", "Siguiente: NOMBRE" y "R o Espacio para continuar". Aterrizaje en el último nivel → "¡Misión completa!" y "R o Espacio para volver a la Luna". |
+| C-15 (v3) | `src/index.html` carga los 7 scripts de §1.8 en ese orden, todos clásicos, Phaser 3.80.1 desde la URL fija. |
+| C-16 (v3) | `physics.js`, `levels.js`, `score.js` y `save.js` no mencionan `Phaser`, `window`, `document`, `localStorage`, `Date`, `performance` ni `Math.random`, y no hacen `require` de otros archivos. `score.js` no usa nada de `physics.js` (recibe la plataforma como argumento). |
+| C-18 (v3) | Igual que v2 (acumulador, tope de 5 pasos, `step(state, input, level, stepCount)`, `stepCount` reiniciado en cada intento). |
+| C-21 (v3) | HUD en HTML: "NIVEL N/total · NOMBRE" con total = `LEVELS.length`; fila de puntaje total con `campaignTotal(save.best, LEVELS)`; fila de viento visible si `level.wind !== 0` o hay `gusts`, con el valor actual `windAt(level, stepCount)` (flecha y magnitud); lo demás igual que v2. |
+| C-22 (v3) | `src/README.md`: los 6 niveles, puntaje (fórmula), guardado, `?nivel=N` (no guarda), `?nuevo` (borra) y comando de pruebas. |
+| C-23 (v3) | `node --test "src/tests/*.test.js"` con 0 fallas, cubriendo todos los criterios **A**: C-01 a C-14, C-26 a C-41 y C-44 a C-63 (C-42 y C-43 son E). |
+| C-25 (v3) | Arte: temas `luna`, `marte`, `asteroide`, `gigante`, `tormenta`, `aproximacion`, con máximo 16 colores cada uno; nave y llama iguales en todos, solo índices 9 a F; medidas desde `CONFIG` y del nivel; los temas de v2 sin cambios. |
+| C-42 (v3) | Nivel inicial con `MoonSave.resolveStart(location.search, …)`. El acceso a `window.localStorage` va dentro de try/catch; si falla se juega igual, sin guardar. Con `reset` se llama `clearSave`. Si `persist` es falso, nunca se llama `writeSave`. |
+| C-43 (v3) | Pantallas como v2. Éxito y misión completa muestran además "Precisión P · Combustible F · Tiempo T" y "Puntaje X", y "Nuevo récord" o "Mejor: Y". Choque no muestra puntaje. |
+| C-64 | Al aterrizar, `game.js` llama `scoreLanding(state, level, platformAt(level, stepCount), stepCount)`, actualiza el guardado en memoria con `recordLanding` y lo escribe con `writeSave` solo si `persist`. Al chocar no cambia ni el guardado ni el total. |
+| C-65 | Sin sonido (ni `this.sound` ni `Audio`), sin menú, la misma versión de Phaser, y nada de v4. |
 
-## 4. Criterios manuales (M) — Nanni
-
-Toda revisión de consola es en la **consola del navegador** (F12 en Chrome), no en la de VS Code.
+## 4. Criterios manuales (M): Nanni
+Toda revisión de consola es en la **consola del navegador** (F12), no en la de VS Code.
 
 | ID | Criterio |
 |---|---|
-| C-M1 (v2) | Con doble clic en `src/index.html` (con internet), los 3 niveles cargan y se juegan sin errores propios del juego en la consola del navegador. Se acepta el aviso conocido de `file://`. |
-| C-M2 (v2) | Cada nivel se puede ganar jugando a mano, y la campaña Luna → Marte → Asteroide → misión completa → Luna se completa sin recargar la página. |
-| C-M3 (v2) | Se ven las pantallas de éxito (con "Siguiente: …"), choque y misión completa; R o Espacio hace lo que dice cada una; Espacio no mueve la página. |
-| C-M4 (v2) | Lo visual de v1 (C-M4 de `proyecto/v1/criterios.md`), más: Marte con suelo rojizo y cielo más cálido; Asteroide con suelo gris oscuro rocoso y más estrellas; la misma nave en los 3; la plataforma se distingue del suelo en los 3. |
-| C-M5 | Abriendo `index.html?nivel=2` con doble clic (`file://`), arranca en Marte. |
-| C-M6 | El HUD muestra "NIVEL N/3 · NOMBRE" legible; en Marte se ve el indicador de viento; en Asteroide la plataforma se mueve, rebota en los extremos y la vel. horiz. cambia de color según la velocidad relativa. |
+| C-M1 (v3) | Con doble clic en `src/index.html` (con internet), los 6 niveles cargan y se juegan sin errores propios en la consola del navegador. Se acepta el aviso conocido de `file://`. |
+| C-M2 (v3) | Cada nivel se puede ganar a mano, y la campaña 1 → 6 → misión completa → Luna se completa sin recargar. |
+| C-M3 | Las pantallas de éxito, choque y misión completa se ven, y R o Espacio hace lo que dice cada una. |
+| C-M4 (v3) | Lo visual de v2, más tres temas nuevos distinguibles: Luna gigante, Tormenta y Aproximación. La nave es la misma en todos y la plataforma se distingue del suelo. |
+| C-M5 (v3) | `index.html?nivel=4` arranca en Luna gigante; jugar así no cambia lo guardado (al abrir sin parámetros sigue el nivel guardado). |
+| C-M6 (v3) | El HUD muestra "NIVEL N/6 · NOMBRE" y el total. En Tormenta, el viento cambia de dirección en ciclos y la flecha del HUD lo sigue. |
+| C-M7 | Guardado: al ganar el nivel 1 y recargar sin parámetros, arranca en el 2; el mejor puntaje se conserva. `index.html?nuevo` vuelve a empezar desde la Luna con total 0. |
+| C-M8 | Curva de dificultad: los niveles 4 a 6 se sienten más difíciles que 1 a 3 y en orden razonable (feedback para afinar). |
+| C-M9 | La pantalla de éxito muestra el desglose del puntaje y el total del HUD sube solo al mejorar un nivel. |

@@ -1,12 +1,14 @@
 // Escenas de Mensajero Orbital: vuelo (física de paso fijo, entrada, HUD) y pantalla final.
-// Depende de los globales Phaser, MoonPhysics, MoonLevels y MoonSprites (cargados antes en index.html).
+// Depende de los globales Phaser, MoonPhysics, MoonLevels, MoonScore, MoonSave y MoonSprites (cargados antes en index.html).
 // Campaña: aterrizar avanza de nivel, chocar repite (regla en MoonLevels.nextLevel).
+// Puntaje al aterrizar (MoonScore) y guardado del avance y los mejores puntajes (MoonSave).
 // El HUD y los textos finales son elementos HTML encima del canvas (#hud, #end) para que se lean nítidos.
 (function () {
   'use strict';
 
-  const { CONFIG, createState, step, platformAt } = MoonPhysics;
+  const { CONFIG, createState, step, platformAt, windAt } = MoonPhysics;
   const { LEVELS, nextLevel } = MoonLevels;
+  const { scoreLanding, campaignTotal } = MoonScore;
   const KEYS = MoonSprites.KEYS;
 
   const MAX_STEPS_PER_FRAME = 5;
@@ -23,16 +25,40 @@
     out_of_bounds: 'Te saliste de la pantalla',
   };
 
-  // Ayuda de prueba: ?nivel=N arranca en ese nivel; si N no es válido, en el 1.
-  function startLevelFromUrl() {
-    const n = Number(new URLSearchParams(window.location.search).get('nivel'));
-    return Number.isInteger(n) && n >= 1 && n <= LEVELS.length ? n : 1;
+  // El almacenamiento del navegador puede no existir o lanzar al pedirlo (bloqueado o modo privado):
+  // en ese caso storage = null y se juega igual, sin guardar.
+  function getStorage() {
+    try {
+      return window.localStorage;
+    } catch (e) {
+      return null;
+    }
   }
-  const START_LEVEL = startLevelFromUrl();
+
+  // Arranque: sin parámetros, en el nivel guardado; ?nuevo borra lo guardado;
+  // ?nivel=N es ayuda de prueba (arranca en N, en 1 si no es válido) y no escribe nada (persist = false).
+  const storage = getStorage();
+  let save = MoonSave.loadSave(storage, LEVELS);
+  const start = MoonSave.resolveStart(window.location.search, save, LEVELS);
+  if (start.reset) {
+    MoonSave.clearSave(storage);
+    save = MoonSave.emptySave();
+  }
+  const START_LEVEL = start.level;
+
+  // Anota el aterrizaje en el guardado (en memoria siempre; en el navegador solo si persist).
+  // Regresa el mejor puntaje que tenía el nivel antes, o undefined si no tenía.
+  function recordScore(n, score) {
+    const prevBest = save.best[LEVELS[n - 1].id];
+    save = MoonSave.recordLanding(save, n, LEVELS, score);
+    if (start.persist) MoonSave.writeSave(storage, save);
+    return prevBest;
+  }
 
   const stageEl = document.getElementById('stage');
   const hud = {
     level: document.getElementById('level-val'),
+    total: document.getElementById('total-val'),
     windRow: document.getElementById('wind-row'),
     wind: document.getElementById('wind-val'),
     fuelRow: document.getElementById('fuel-row'),
@@ -47,6 +73,8 @@
   const endEl = document.getElementById('end');
   const endTitleEl = document.getElementById('end-title');
   const endReasonEl = document.getElementById('end-reason');
+  const endScoreEl = document.getElementById('end-score');
+  const endBestEl = document.getElementById('end-best');
   const endHintEl = document.getElementById('end-hint');
 
   // Escala entera en píxeles físicos cuando cabe (píxeles parejos aun con escala de Windows
@@ -64,7 +92,8 @@
   }
 
   // next = lo que regresó nextLevel: el mismo nivel (choque), el siguiente o null (misión completa).
-  function showEnd(status, crashReason, next) {
+  // result = { score, prevBest } si aterrizó; null si chocó (chocar no da ni quita puntos).
+  function showEnd(status, crashReason, next, result) {
     const landed = status === 'landed';
     endEl.className = 'overlay-text ' + (landed ? 'landed' : 'crashed');
     if (!landed) {
@@ -73,14 +102,25 @@
       endHintEl.textContent = 'R o Espacio para reintentar';
     } else if (next === null) {
       endTitleEl.textContent = '¡Misión completa!';
-      endReasonEl.textContent = '';
+      endReasonEl.textContent = 'Total de campaña: ' + campaignTotal(save.best, LEVELS);
       endHintEl.textContent = 'R o Espacio para volver a la ' + LEVELS[0].name;
     } else {
       endTitleEl.textContent = '¡Aterrizaje exitoso!';
       endReasonEl.textContent = 'Siguiente: ' + LEVELS[next - 1].name;
       endHintEl.textContent = 'R o Espacio para continuar';
     }
+    if (result) {
+      const sc = result.score;
+      const record = result.prevBest === undefined || sc.total > result.prevBest;
+      endScoreEl.textContent = 'Precisión ' + sc.precision + ' · Combustible ' + sc.fuel + ' · Tiempo ' + sc.time;
+      endBestEl.textContent = 'Puntaje ' + sc.total + ' · ' + (record ? '¡Nuevo récord!' : 'Mejor: ' + result.prevBest);
+    } else {
+      endScoreEl.textContent = '';
+      endBestEl.textContent = '';
+    }
     endReasonEl.hidden = endReasonEl.textContent === '';
+    endScoreEl.hidden = endScoreEl.textContent === '';
+    endBestEl.hidden = endBestEl.textContent === '';
     endEl.hidden = false;
   }
 
@@ -95,11 +135,22 @@
     el.classList.toggle('bad', !ok);
   }
 
-  // Datos fijos del nivel en el HUD: "NIVEL N/3 · NOMBRE" y el viento, solo si el nivel tiene.
+  // Total de campaña en el HUD: suma de los mejores puntajes por nivel.
+  function updateTotal() {
+    hud.total.textContent = campaignTotal(save.best, LEVELS);
+  }
+
+  // Datos fijos del nivel en el HUD: "NIVEL N/total · NOMBRE", el total y si hay fila de viento
+  // (solo si el nivel tiene viento o ráfagas; lo decide el dato, no el nombre del nivel).
   function setupHud(n, level) {
     hud.level.textContent = 'Nivel ' + n + '/' + LEVELS.length + ' · ' + level.name;
-    hud.windRow.hidden = level.wind === 0;
-    hud.wind.textContent = (level.wind < 0 ? '← ' : '→ ') + Math.abs(level.wind);
+    hud.windRow.hidden = level.wind === 0 && !level.gusts;
+    updateTotal();
+  }
+
+  // wind = viento del paso que sigue (con ráfagas cambia con el tiempo).
+  function showWind(wind) {
+    hud.wind.textContent = wind === 0 ? '0' : (wind < 0 ? '← ' : '→ ') + Math.abs(wind);
   }
 
   // platformVx: la velocidad horizontal se muestra y colorea relativa a la plataforma.
@@ -196,16 +247,25 @@
       this.flame.setTexture(Math.floor(this.stepCount / 4) % 2 === 0 ? KEYS.FLAME_A : KEYS.FLAME_B);
 
       updateHud(s, this.level.fuel, platform.vx);
+      showWind(windAt(this.level, this.stepCount));
     }
 
+    // Al aterrizar: puntaje con la plataforma del paso del contacto y los pasos del intento.
     finish() {
       this.ended = true;
       this.flame.setVisible(false);
       if (this.state.status === 'crashed') this.shipImage.setTint(0xff5555);
+      let result = null;
+      if (this.state.status === 'landed') {
+        const score = scoreLanding(this.state, this.level, platformAt(this.level, this.stepCount), this.stepCount);
+        result = { score: score, prevBest: recordScore(this.levelNumber, score) };
+        updateTotal();
+      }
       this.scene.launch('EndScene', {
         status: this.state.status,
         crashReason: this.state.crashReason,
         level: this.levelNumber,
+        result: result,
       });
     }
   }
@@ -218,7 +278,7 @@
 
     create(data) {
       const next = nextLevel(data.level, data.status);
-      showEnd(data.status, data.crashReason, next);
+      showEnd(data.status, data.crashReason, next, data.result);
 
       // Reinicia la escena de vuelo (que vuelve a llamar a createState) sin recargar la página.
       // Tras la misión completa (next === null) vuelve al nivel 1.

@@ -134,12 +134,14 @@
       font-size: clamp(18px, 3vw, 52px);
       letter-spacing: 0.08em;
     }
-    #end-reason, #end-hint {
+    #end-reason, #end-score, #end-best, #end-hint {
       font-size: clamp(12px, 1.5vw, 26px);
       color: var(--ink);
       margin-top: 0.5em;
     }
     #end-hint { color: #aab4ff; }
+    #end-score { font-size: clamp(10px, 1.2vw, 20px); }
+    #end-best { color: var(--gold); }
 
     /* Éxito: el panel entra rebotando y salen destellos (un rato, luego quietos). */
     #end.landed { animation: bounce-in 0.7s steps(7, end) both; }
@@ -202,6 +204,10 @@
       <div class="hud-row" id="level-row">
         <span id="level-val"></span>
       </div>
+      <div class="hud-row" id="total-row">
+        <span class="hud-label">Total</span>
+        <span class="hud-value" id="total-val"></span>
+      </div>
       <div class="hud-row fuel-high" id="fuel-row">
         <span class="hud-label">Combustible</span>
         <div class="fuel-bar"><div id="fuel-fill"></div></div>
@@ -235,12 +241,16 @@
       <span class="spark"></span><span class="spark"></span><span class="spark"></span><span class="spark"></span>
       <div id="end-title"></div>
       <div id="end-reason"></div>
+      <div id="end-score"></div>
+      <div id="end-best"></div>
       <div id="end-hint"></div>
     </div>
   </div>
   <script src="https://cdn.jsdelivr.net/npm/phaser@3.80.1/dist/phaser.min.js"></script>
   <script src="js/physics.js"></script>
   <script src="js/levels.js"></script>
+  <script src="js/score.js"></script>
+  <script src="js/save.js"></script>
   <script src="js/sprites.js"></script>
   <script src="js/game.js"></script>
 </body>

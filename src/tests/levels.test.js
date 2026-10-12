@@ -1,4 +1,5 @@
 // Pruebas de los datos de niveles y la progresión (criterios C-26, C-28, C-36 y C-37 de proyecto/criterios.md).
+// v3: ajustadas solo donde dependían de que hubiera 3 niveles (ver proyecto/bitacora.md).
 // Correr desde moon/:  node --test "src/tests/*.test.js"
 'use strict';
 
@@ -25,10 +26,10 @@ function allKeys(obj) {
 
 test('C-26 los niveles cargan con require', () => {
   assert.ok(Array.isArray(LEVELS), 'LEVELS debe ser un arreglo');
-  assert.strictEqual(LEVELS.length, 3);
+  assert.strictEqual(LEVELS.length, 6);
   assert.strictEqual(typeof nextLevel, 'function');
-  assert.deepStrictEqual(LEVELS.map((l) => l.id), ['luna', 'marte', 'asteroide']);
-  assert.deepStrictEqual(LEVELS.map((l) => l.name), ['Luna', 'Marte', 'Asteroide']);
+  assert.deepStrictEqual(LEVELS.map((l) => l.id), ['luna', 'marte', 'asteroide', 'gigante', 'tormenta', 'aproximacion']);
+  assert.deepStrictEqual(LEVELS.map((l) => l.name), ['Luna', 'Marte', 'Asteroide', 'Luna gigante', 'Tormenta', 'Aproximación']);
 });
 
 test('C-28 datos de los niveles y estado inicial', () => {
@@ -58,7 +59,7 @@ test('C-28 datos de los niveles y estado inicial', () => {
 
   assert.deepStrictEqual(createState(luna), createState());
 
-  for (const level of LEVELS) {
+  for (const level of LEVELS.slice(0, 3)) {
     const s = createState(level);
     assert.deepStrictEqual(Object.keys(s).sort(), STATE_KEYS, `campos de ${level.id}`);
     assert.deepStrictEqual(s, {
@@ -69,7 +70,7 @@ test('C-28 datos de los niveles y estado inicial', () => {
 });
 
 test('C-36 regla de dificultad', () => {
-  for (let i = 1; i < LEVELS.length; i++) {
+  for (let i = 1; i < 3; i++) {
     const prev = LEVELS[i - 1];
     const cur = LEVELS[i];
     assert.ok(cur.fuel <= prev.fuel, `${cur.id}: combustible ${cur.fuel} > ${prev.fuel}`);
@@ -91,9 +92,11 @@ test('C-36 regla de dificultad', () => {
 test('C-37 progresión', () => {
   assert.strictEqual(nextLevel(1, 'landed'), 2);
   assert.strictEqual(nextLevel(2, 'landed'), 3);
-  assert.strictEqual(nextLevel(3, 'landed'), null);
+  assert.strictEqual(nextLevel(3, 'landed'), 4);
+  assert.strictEqual(nextLevel(6, 'landed'), null);
   assert.strictEqual(nextLevel(1, 'crashed'), 1);
   assert.strictEqual(nextLevel(2, 'crashed'), 2);
   assert.strictEqual(nextLevel(3, 'crashed'), 3);
+  assert.strictEqual(nextLevel(6, 'crashed'), 6);
   assert.throws(() => nextLevel(1, 'flying'));
 });

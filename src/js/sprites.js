@@ -67,6 +67,51 @@
       stars: 150, starSeed: 20261003,
       craters: 90, maxCrater: 3, craterSeed: 13,
     },
+    gigante: {
+      colors: {
+        0: '#140b24', // cielo violeta oscuro
+        1: '#fff6e0', // estrella brillante
+        2: '#9a86c0', // estrella tenue
+        3: '#c9a46a', // superficie, borde claro ocre
+        4: '#94703e', // superficie parda, pesada
+        5: '#6b4c26', // cráter
+        6: '#3d2a14', // sombra de cráter / soporte de plataforma
+        7: '#4fd8e8', // plataforma (cian, contrasta con el pardo)
+        8: '#f2f2f2', // marcas de la plataforma
+      },
+      stars: 60, starSeed: 20261004,
+      craters: 30, maxCrater: 3, craterSeed: 17,
+    },
+    tormenta: {
+      colors: {
+        0: '#1a2230', // cielo gris azulado de tormenta
+        1: '#dfe8f5', // estrella brillante (pocas, entre nubes)
+        2: '#5d6f88', // estrella tenue
+        3: '#7f8fa3', // superficie, borde claro
+        4: '#566477', // superficie pizarra
+        5: '#3c4757', // cráter
+        6: '#232a35', // sombra de cráter / soporte de plataforma
+        7: '#f2c230', // plataforma (amarilla, contrasta con el azul)
+        8: '#c0392b', // marcas de la plataforma
+      },
+      stars: 20, starSeed: 20261005,
+      craters: 35, maxCrater: 2, craterSeed: 19,
+    },
+    aproximacion: {
+      colors: {
+        0: '#03040a', // espacio profundo
+        1: '#ffffff', // estrella brillante
+        2: '#6e78a8', // estrella tenue
+        3: '#b8c0cc', // cubierta metálica, borde claro
+        4: '#7d8794', // cubierta metálica
+        5: '#5a636e', // remaches y paneles
+        6: '#2e343c', // sombra / soporte de plataforma
+        7: '#4fd8e8', // plataforma (cian)
+        8: '#ff9f1c', // marcas de la plataforma (naranja)
+      },
+      stars: 110, starSeed: 20261006,
+      craters: 60, maxCrater: 1, craterSeed: 23,
+    },
   };
 
   // Partes fijas de la plataforma (en px): marcas en cada extremo y grosor de cada franja.
