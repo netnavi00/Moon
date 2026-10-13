@@ -112,6 +112,66 @@
       stars: 110, starSeed: 20261006,
       craters: 60, maxCrater: 1, craterSeed: 23,
     },
+    entrega: {
+      colors: {
+        0: '#0a1424', // cielo azul marino
+        1: '#ffffff', // estrella brillante
+        2: '#7f9cc0', // estrella tenue
+        3: '#9fb3a8', // superficie, borde claro (verde salvia)
+        4: '#6f8577', // superficie
+        5: '#4e6155', // cráter
+        6: '#2c3830', // sombra de cráter / soporte de plataforma
+        7: '#f2c230', // plataforma (amarilla)
+        8: '#c0392b', // marcas de la plataforma
+      },
+      stars: 80, starSeed: 20261007,
+      craters: 40, maxCrater: 2, craterSeed: 29,
+    },
+    carga: {
+      colors: {
+        0: '#1b1110', // cielo de mina, casi negro rojizo
+        1: '#ffe9d6', // estrella brillante
+        2: '#9a7b70', // estrella tenue
+        3: '#a0603c', // superficie, borde claro (óxido)
+        4: '#6e3b22', // superficie de hierro
+        5: '#4a2414', // cráter
+        6: '#2a140b', // sombra de cráter / soporte de plataforma
+        7: '#4fd8e8', // plataforma (cian, contrasta con el óxido)
+        8: '#f2f2f2', // marcas de la plataforma
+      },
+      stars: 40, starSeed: 20261008,
+      craters: 50, maxCrater: 3, craterSeed: 31,
+    },
+    capsulas: {
+      colors: {
+        0: '#120a26', // cielo de nebulosa violeta
+        1: '#ffffff', // estrella brillante
+        2: '#b48ae0', // estrella tenue lila
+        3: '#6fb7a8', // superficie, borde claro (verde agua)
+        4: '#3f7f73', // superficie
+        5: '#2a5a51', // cráter
+        6: '#173530', // sombra de cráter / soporte de plataforma
+        7: '#ff9f1c', // plataforma (naranja)
+        8: '#f2f2f2', // marcas de la plataforma
+      },
+      stars: 130, starSeed: 20261009,
+      craters: 35, maxCrater: 2, craterSeed: 37,
+    },
+    final: {
+      colors: {
+        0: '#200818', // cielo de atardecer carmesí
+        1: '#fff3c4', // estrella brillante
+        2: '#c07aa0', // estrella tenue
+        3: '#d9c7a0', // superficie, borde claro (arena)
+        4: '#a3906a', // superficie
+        5: '#76654a', // cráter
+        6: '#43392a', // sombra de cráter / soporte de plataforma
+        7: '#4fd8e8', // plataforma (cian)
+        8: '#ff4d6d', // marcas de la plataforma (rosa)
+      },
+      stars: 90, starSeed: 20261010,
+      craters: 45, maxCrater: 2, craterSeed: 41,
+    },
   };
 
   // Partes fijas de la plataforma (en px): marcas en cada extremo y grosor de cada franja.
@@ -156,6 +216,51 @@
     '....',
   ];
 
+  // Paquete (v4) 8×7 y cápsulas 8×8 (miden lo mismo que su caja de contacto, 2·CAPSULE_HALF en mission.js).
+  // Solo usan los colores fijos 9–F, así se ven igual en todos los mundos.
+  // Cápsula azul = combustible; amarilla = puntos; mitad y mitad = ambos.
+  const SPRITES = {
+    PACKAGE: [
+      'EEEEEEEE',
+      'EF9FF9FE',
+      'EFFFFFFE',
+      'E999999E',
+      'EFFFFFFE',
+      'EF9FF9FE',
+      'EEEEEEEE',
+    ],
+    CAPSULE_FUEL: [
+      '..EEEE..',
+      '.EBBBBE.',
+      'EBB99BBE',
+      'EB9999BE',
+      'EB9999BE',
+      'EBB99BBE',
+      '.EBBBBE.',
+      '..EEEE..',
+    ],
+    CAPSULE_POINTS: [
+      '..EEEE..',
+      '.EDDDDE.',
+      'EDDCCDDE',
+      'EDCCCCDE',
+      'EDCCCCDE',
+      'EDDCCDDE',
+      '.EDDDDE.',
+      '..EEEE..',
+    ],
+    CAPSULE_BOTH: [
+      '..EEEE..',
+      '.EBBBBE.',
+      'EBB99BBE',
+      'EB9999BE',
+      'EDCCCCDE',
+      'EDDCCDDE',
+      '.EDDDDE.',
+      '..EEEE..',
+    ],
+  };
+
   // Generador con semilla fija: mismas estrellas y cráteres en cada carga.
   function seeded(seed) {
     let s = seed >>> 0;
@@ -176,8 +281,11 @@
   }
 
   // Plataforma de (x2 − x1) px de ancho: franja de color con marcas en los extremos, y debajo el soporte.
-  function buildPlatform(width) {
-    const top = '8'.repeat(PLATFORM_MARK) + '7'.repeat(width - 2 * PLATFORM_MARK) + '8'.repeat(PLATFORM_MARK);
+  // pickup = plataforma de recogida A (v4): mismos colores con las marcas invertidas, para distinguirla de B.
+  function buildPlatform(width, pickup) {
+    const mark = pickup ? '7' : '8';
+    const body = pickup ? '8' : '7';
+    const top = mark.repeat(PLATFORM_MARK) + body.repeat(width - 2 * PLATFORM_MARK) + mark.repeat(PLATFORM_MARK);
     const rows = [];
     for (let i = 0; i < PLATFORM_BAND; i++) rows.push(top);
     for (let i = 0; i < PLATFORM_BAND; i++) rows.push('6'.repeat(width));
@@ -218,8 +326,15 @@
     if (!textures.exists(key)) textures.generate(key, { data: data, palette: palette, pixelWidth: 1 });
   }
 
+  // Sprite de cada cápsula según lo que da: combustible, puntos o ambos.
+  function capsuleSprite(c) {
+    if (c.fuel > 0 && c.points > 0) return 'CAPSULE_BOTH';
+    return c.fuel > 0 ? 'CAPSULE_FUEL' : 'CAPSULE_POINTS';
+  }
+
   // Genera las texturas del nivel (llaves por tema; la plataforma también por ancho) y las de la nave.
-  // Regresa { background, ground, platform } con las llaves que debe usar la escena.
+  // Regresa { background, ground, platform } con las llaves que debe usar la escena; en misiones agrega
+  // pickup y package, y si hay cápsulas, capsules = [llave de cada una].
   function generateLevel(textures, level) {
     const theme = THEMES[level.theme];
     const palette = Object.assign({}, theme.colors, SHIP_COLORS);
@@ -235,8 +350,23 @@
     generate(textures, KEYS.SHIP, SHIP, palette);
     generate(textures, KEYS.FLAME_A, FLAME_A, palette);
     generate(textures, KEYS.FLAME_B, FLAME_B, palette);
+    if (level.pickup) {
+      const pickupWidth = level.pickup.x2 - level.pickup.x1;
+      keys.pickup = 'pickup_' + level.theme + '_' + pickupWidth;
+      keys.package = 'package';
+      generate(textures, keys.pickup, buildPlatform(pickupWidth, true), palette);
+      generate(textures, keys.package, SPRITES.PACKAGE, palette);
+    }
+    if (level.capsules) {
+      keys.capsules = level.capsules.map(function (c) {
+        const name = capsuleSprite(c);
+        const key = name.toLowerCase();
+        generate(textures, key, SPRITES[name], palette);
+        return key;
+      });
+    }
     return keys;
   }
 
-  root.MoonSprites = { THEMES, SHIP_COLORS, KEYS, generateLevel };
+  root.MoonSprites = { THEMES, SHIP_COLORS, SPRITES, KEYS, generateLevel };
 })(typeof globalThis !== 'undefined' ? globalThis : this);

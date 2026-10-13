@@ -21,16 +21,25 @@ Una línea por lección. Sirven para cualquier proyecto.
 - 2026-10-11 (Mensajero Orbital v3): el almacenamiento del navegador se pasa como argumento a funciones puras con try/catch; así se prueba en Node con un almacenamiento falso que lanza, sin navegador.
 - 2026-10-11 (Mensajero Orbital v3): una prueba de humo de `game.js` en Node con Phaser y DOM falsos verificó la integración (arranque, guardado, puntaje, HUD) sin navegador; no sustituye la prueba manual, pero la reduce a lo visual.
 - 2026-10-11 (Mensajero Orbital v3): el revisor debe recibir también los hashes de los entregables anteriores cuando las pruebas los usan como referencia; si no, puede que alguien los cambie y las pruebas sigan pasando sin avisar.
+- 2026-10-11 (Mensajero Orbital v4): cuando una regla prohíbe cambiar un estado (el de 8 campos y que `step` no "reviva"), envolverlo en un estado aparte que llama a la misma función pura deja la regresión exacta y comprobable paso a paso contra el entregable anterior.
+- 2026-10-11 (Mensajero Orbital v4): un piloto que busca por "más combustible" encuentra trampas legales (aterrizar en la orilla, tocar y rebotar); hay que agregarle restricciones de cómo se juega antes de confiar en sus secuencias.
+- 2026-10-11 (Mensajero Orbital v4): validar el piloto con su simulador sobre la secuencia calculada a mano (fila por fila) separa los errores del simulador de los de la búsqueda.
+- 2026-10-11 (Mensajero Orbital v4): la regla de redirecciones se volvió a romper (heredoc `>>` hacia `src/` y `cat > nombre` sin ruta explícita); la única forma segura fue dejar de usar redirecciones y escribir archivos solo con Write/Edit.
+- 2026-10-11 (Mensajero Orbital v4): un criterio con un valor de prueba sintético (y = 153.9) debe calcularse antes de escribirse; si la prueba se corrige, el criterio se corrige en el mismo momento.
+- 2026-10-11 (Mensajero Orbital v4): la regla "cada nivel estrena como máximo una mecánica" admite excepciones aprobadas por Nanni cuando una mecánica alivia a otra (el nivel 8 estrena carga pesada y cápsula: la cápsula compensa la carga). La excepción se registra por nivel en el criterio y en la prueba; la regla no se borra.
+- 2026-10-11 (Mensajero Orbital v4): el margen de combustible de una secuencia de referencia se mide como proporción del combustible inicial, no como unidades fijas, porque una persona gasta mucho más que el piloto. Con 10 unidades el nivel 8 se sentía imposible; con ≥ 30 % (feedback de Nanni) quedó bien.
+- 2026-10-13 (Mensajero Orbital v4): el feedback de jugar encontró lo que los cálculos no: los 10 niveles cumplían la regla de margen, pero solo el 8 se sentía injusto. Se arregló con un cambio de datos aislado (una cápsula), probado con huellas de que lo demás no cambió.
+- 2026-10-11 (Mensajero Orbital v4): antes de cambiar un nivel, congelar con huellas sha256 los datos y las secuencias de los demás permite probar que el cambio quedó aislado.
+- 2026-10-11 (Mensajero Orbital v4): buscar la raíz del proyecto hacia arriba (la carpeta con `CLAUDE.md`) deja que las pruebas que comparan contra `entregables/` corran igual desde `src/` y desde la copia del entregable.
 
-## Fuera de alcance (pendiente para v4)
+## Fuera de alcance (pendiente para v5)
 
-Resuelto en v3: puntaje, Luna gigante y ráfagas de viento. Se evalúa lo siguiente al armar el brief de v4.
+v4 se cerró el 2026-10-13. Resolvió: los niveles 7 a 10 (misiones, carga pesada y cápsulas), la ruta de las pruebas nuevas hacia `entregables/v3/` resuelta desde la raíz, y los sha256 de los entregables anteriores en `proyecto/foto-src.md`. Nanni aprobó la dificultad de los 10 niveles, el estacionamiento que endereza la nave y el puntaje de misión. Al armar el brief de v5 se evalúa lo siguiente:
 
-- Mensajero Orbital: niveles 7 a 10 (ola 2), agregados solo como datos; el HUD ya toma el total de `LEVELS.length`.
-- Mensajero Orbital: cinturón de rocas.
+- Mensajero Orbital: rocas.
+- Mensajero Orbital: niebla.
+- Mensajero Orbital: ráfagas nuevas.
 - Mensajero Orbital: sonido.
 - Mensajero Orbital: menú.
-- Mensajero Orbital: afinar la dificultad de los niveles 4 a 6 y los números de puntaje (500/300/200, 1 punto por cada 4 pasos) con el feedback de Nanni; en v3 aprobó C-M1 a C-M9 sin pedir cambios.
-- Mensajero Orbital: Tormenta se puede ganar solo esperando el momento, sin compensar el viento; decidir si así se queda.
-- Mensajero Orbital: que `campaign.test.js` encuentre `entregables/v2/` también desde la copia del entregable (hoy solo corre desde `src/`).
-- Mensajero Orbital: un criterio con sha256 de `entregables/v2/` (y de v3) como referencia de regresión, como `regresion-v1.md`.
+- Mensajero Orbital: arreglar la ruta relativa de `campaign.test.js` (busca `../../entregables/v2/`, así que solo corre desde `src/`; dentro de `entregables/v4/` da 61/62).
+- Mensajero Orbital (abierto desde v3, sin decisión): Tormenta se puede ganar solo esperando el momento; decidir si así se queda.

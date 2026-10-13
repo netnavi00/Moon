@@ -3,6 +3,7 @@
 // Paso fijo de CONFIG.DT segundos; step no recibe tiempo y no modifica el estado que recibe.
 // El nivel y el número de paso son argumentos opcionales: sin ellos, todo se comporta como la Luna de v1.
 // Mecánicas opcionales del nivel (v3): fuelRate, gusts y start.vx/vy; si faltan, valen lo de la Luna.
+// v4: thrustFactor opcional (factor del empuje; lo pone la misión con carga pesada).
 (function (root, factory) {
   const api = factory();
   if (typeof module === 'object' && module.exports) module.exports = api;
@@ -117,8 +118,10 @@
     let ax = 0;
     let ay = 0;
     if (input.thrust && s.fuel > 0) {
-      ax += Math.sin(s.angle * DEG) * CONFIG.THRUST;
-      ay += -Math.cos(s.angle * DEG) * CONFIG.THRUST;
+      // thrustFactor (v4, opcional): lo pone la misión con carga pesada; sin él vale 1 (exacto en IEEE 754).
+      const thrust = CONFIG.THRUST * (level.thrustFactor ?? 1);
+      ax += Math.sin(s.angle * DEG) * thrust;
+      ay += -Math.cos(s.angle * DEG) * thrust;
       s.fuel = Math.max(0, s.fuel - (level.fuelRate ?? CONFIG.FUEL_RATE) * dt);
     }
 

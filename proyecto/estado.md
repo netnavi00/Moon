@@ -1,13 +1,17 @@
-# Estado: Mensajero Orbital v3
+# Estado: Mensajero Orbital v4
 
-**Fase actual:** **CERRADA** el 2026-10-11, con la aprobación de Nanni (C-M1 a C-M9).
+**Fase actual:** **CERRADA** el 2026-10-13 con la aprobación de Nanni. Probó los 10 niveles, incluido el 8 con su cápsula, y aprobó el estacionamiento que endereza la nave y el puntaje de misión.
 
-**Entregable:** `entregables/v3/`, copia idéntica de `src/` (13 archivos; sha256 en `proyecto/foto-src.md`). `entregables/v1/` y `entregables/v2/` sin cambios.
+**Entregable:** `entregables/v4/`, copia idéntica de `src/` (17 archivos; sha256 en `proyecto/foto-src.md`, sección "Cierre T11"). `entregables/v1/`, `v2/` y `v3/` sin cambios.
 
-**Hechas:** T01 a T11. Revisión 65/65 A y E; 50/50 pruebas; sin reparaciones.
+**Hechas:** T00 a T11 y el ajuste D-14 (cápsula del nivel 8).
+- Revisión completa: 89 de 89 criterios automáticos y estáticos pasan tras 1 ciclo de aclaraciones, sin fallas.
+- Revisión acotada de D-14: 6 de 6 pasan.
 
-**Pendientes de v3:** ninguno. Nota: las pruebas corren desde `src/` (50/50); dentro de `entregables/v3/` `campaign.test.js` no encuentra `entregables/v2/` por la ruta relativa (pendiente de v4 en `lecciones.md`).
+**Pruebas finales (2026-10-13):**
+- `node --test "src/tests/*.test.js"` desde `moon/`: 74 tests, 74 pass, 0 fail.
+- Dentro de `entregables/v4/`: 61 de 62. Solo falla `campaign.test.js` de v3, porque busca `entregables/v2/` con ruta relativa. Es el pendiente conocido para v5; las pruebas nuevas de v4 sí corren desde la copia.
 
-**Siguiente:** v4 (ola 2, niveles 7 a 10), empezando por un brief nuevo. Pendientes en `lecciones.md` → "Fuera de alcance (pendiente para v4)".
+**Pendientes de v4:** ninguno. Los de v5 están en `lecciones.md` → "Fuera de alcance (pendiente para v5)".
 
-**Commits:** ninguno hecho; quedan a decisión de Nanni.
+**Commits:** ninguno; quedan a decisión de Nanni.

@@ -26,10 +26,10 @@ function allKeys(obj) {
 
 test('C-26 los niveles cargan con require', () => {
   assert.ok(Array.isArray(LEVELS), 'LEVELS debe ser un arreglo');
-  assert.strictEqual(LEVELS.length, 6);
+  assert.strictEqual(LEVELS.length, 10);
   assert.strictEqual(typeof nextLevel, 'function');
-  assert.deepStrictEqual(LEVELS.map((l) => l.id), ['luna', 'marte', 'asteroide', 'gigante', 'tormenta', 'aproximacion']);
-  assert.deepStrictEqual(LEVELS.map((l) => l.name), ['Luna', 'Marte', 'Asteroide', 'Luna gigante', 'Tormenta', 'Aproximación']);
+  assert.deepStrictEqual(LEVELS.map((l) => l.id), ['luna', 'marte', 'asteroide', 'gigante', 'tormenta', 'aproximacion', 'entrega', 'carga', 'capsulas', 'final']);
+  assert.deepStrictEqual(LEVELS.map((l) => l.name), ['Luna', 'Marte', 'Asteroide', 'Luna gigante', 'Tormenta', 'Aproximación', 'Primera entrega', 'Carga pesada', 'Cápsulas', 'Gran entrega']);
 });
 
 test('C-28 datos de los niveles y estado inicial', () => {
@@ -93,7 +93,7 @@ test('C-37 progresión', () => {
   assert.strictEqual(nextLevel(1, 'landed'), 2);
   assert.strictEqual(nextLevel(2, 'landed'), 3);
   assert.strictEqual(nextLevel(3, 'landed'), 4);
-  assert.strictEqual(nextLevel(6, 'landed'), null);
+  assert.strictEqual(nextLevel(10, 'landed'), null);
   assert.strictEqual(nextLevel(1, 'crashed'), 1);
   assert.strictEqual(nextLevel(2, 'crashed'), 2);
   assert.strictEqual(nextLevel(3, 'crashed'), 3);

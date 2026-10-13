@@ -12,6 +12,8 @@
   // platform: x1–x2 es la posición inicial; con speed > 0 va y viene entre minX y maxX (px/s),
   // empezando hacia la derecha. theme es la llave de la paleta en sprites.js.
   // Campos opcionales (mecánicas de v3, con el valor de la Luna si faltan): fuelRate, gusts, start.vx/vy.
+  // Campos opcionales de v4: pickup { x1, x2 } (misión), cargoThrust (factor del empuje con el paquete, 1 si falta)
+  // y capsules [{ x, y, fuel, points }] ([] si falta).
   const LEVELS = Object.freeze([
     Object.freeze({
       id: 'luna',
@@ -81,6 +83,70 @@
       fuel: 30,
       start: Object.freeze({ x: 24, y: 24, vx: 32, vy: 28 }),
       platform: Object.freeze({ x1: 124, x2: 164, speed: 0 }),
+    }),
+    // Mecánica: misión de entrega. pickup = plataforma de recogida A; platform = la de entrega B (ver mission.js).
+    Object.freeze({
+      id: 'entrega',
+      name: 'Primera entrega',
+      theme: 'entrega',
+      gravity: 20,
+      wind: 0,
+      fuel: 110,
+      start: Object.freeze({ x: 70, y: 30 }),
+      pickup: Object.freeze({ x1: 40, x2: 100 }),
+      platform: Object.freeze({ x1: 160, x2: 220, speed: 0 }),
+    }),
+    // Mecánicas: carga pesada (cargoThrust = factor del empuje con el paquete a bordo) y una cápsula a medio
+    // camino (excepción a "una mecánica nueva por nivel", aprobada por Nanni). B queda a la izquierda.
+    Object.freeze({
+      id: 'carga',
+      name: 'Carga pesada',
+      theme: 'carga',
+      gravity: 20,
+      wind: 0,
+      fuel: 150,
+      start: Object.freeze({ x: 240, y: 30 }),
+      pickup: Object.freeze({ x1: 210, x2: 270 }),
+      platform: Object.freeze({ x1: 90, x2: 150, speed: 0 }),
+      cargoThrust: 0.6,
+      capsules: Object.freeze([
+        Object.freeze({ x: 180, y: 125, fuel: 30, points: 50 }),
+      ]),
+    }),
+    // Mecánica: cápsulas { x, y, fuel, points }. Sin las dos de la ruta no alcanza el combustible.
+    Object.freeze({
+      id: 'capsulas',
+      name: 'Cápsulas',
+      theme: 'capsulas',
+      gravity: 20,
+      wind: 0,
+      fuel: 80,
+      start: Object.freeze({ x: 60, y: 30 }),
+      pickup: Object.freeze({ x1: 30, x2: 90 }),
+      platform: Object.freeze({ x1: 210, x2: 260, speed: 0 }),
+      capsules: Object.freeze([
+        Object.freeze({ x: 110, y: 112, fuel: 25, points: 50 }),
+        Object.freeze({ x: 170, y: 112, fuel: 25, points: 50 }),
+        Object.freeze({ x: 140, y: 60, fuel: 0, points: 150 }),
+      ]),
+    }),
+    // Final: misión con carga pesada y cápsulas; no estrena mecánica.
+    Object.freeze({
+      id: 'final',
+      name: 'Gran entrega',
+      theme: 'final',
+      gravity: 22,
+      wind: 0,
+      fuel: 110,
+      start: Object.freeze({ x: 265, y: 30 }),
+      pickup: Object.freeze({ x1: 240, x2: 290 }),
+      platform: Object.freeze({ x1: 50, x2: 94, speed: 0 }),
+      cargoThrust: 0.7,
+      capsules: Object.freeze([
+        Object.freeze({ x: 200, y: 115, fuel: 30, points: 50 }),
+        Object.freeze({ x: 130, y: 115, fuel: 30, points: 50 }),
+        Object.freeze({ x: 165, y: 70, fuel: 10, points: 100 }),
+      ]),
     }),
   ]);
 

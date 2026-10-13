@@ -82,7 +82,7 @@ test('C-59 parseSave y recordLanding', () => {
     parseSave('{"unlocked":4,"best":{"luna":700,"marte":-5,"zzz":3,"tormenta":"x","asteroide":2.5}}', LEVELS),
     { unlocked: 4, best: { luna: 700 } }
   );
-  assert.strictEqual(parseSave('{"unlocked":99}', LEVELS).unlocked, 6);
+  assert.strictEqual(parseSave('{"unlocked":99}', LEVELS).unlocked, 10);
   assert.strictEqual(parseSave('{"unlocked":0}', LEVELS).unlocked, 1);
   assert.strictEqual(parseSave('{"unlocked":2.5}', LEVELS).unlocked, 1);
 
@@ -93,8 +93,8 @@ test('C-59 parseSave y recordLanding', () => {
   const s2 = recordLanding(s1, 1, LEVELS, { total: 600 });
   assert.deepStrictEqual(s2, { unlocked: 2, best: { luna: 700 } });
   assert.deepStrictEqual(s1, { unlocked: 2, best: { luna: 700 } });
-  const s6 = recordLanding({ unlocked: 6, best: {} }, 6, LEVELS, { total: 50 });
-  assert.deepStrictEqual(s6, { unlocked: 6, best: { aproximacion: 50 } });
+  const s6 = recordLanding({ unlocked: 10, best: {} }, 10, LEVELS, { total: 50 });
+  assert.deepStrictEqual(s6, { unlocked: 10, best: { final: 50 } });
   assert.strictEqual(recordLanding({ unlocked: 5, best: {} }, 2, LEVELS, { total: 10 }).unlocked, 5);
 });
 
@@ -120,7 +120,7 @@ test('C-61 resolveStart', () => {
   assert.deepStrictEqual(resolveStart('', save, LEVELS), { level: 4, persist: true, reset: false });
   assert.deepStrictEqual(resolveStart('?nuevo', save, LEVELS), { level: 1, persist: true, reset: true });
   assert.deepStrictEqual(resolveStart('?nivel=2', save, LEVELS), { level: 2, persist: false, reset: false });
-  assert.deepStrictEqual(resolveStart('?nivel=9', save, LEVELS), { level: 1, persist: false, reset: false });
+  assert.deepStrictEqual(resolveStart('?nivel=11', save, LEVELS), { level: 1, persist: false, reset: false });
   assert.deepStrictEqual(resolveStart('?nivel=abc', save, LEVELS), { level: 1, persist: false, reset: false });
   assert.deepStrictEqual(resolveStart('?nuevo&nivel=3', save, LEVELS), { level: 3, persist: false, reset: true });
 });

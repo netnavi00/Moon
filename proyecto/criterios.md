@@ -1,74 +1,91 @@
-# Criterios de aceptación: Mensajero Orbital v3
+# Criterios de aceptación: Mensajero Orbital v4
 
-> Estado: **decididos en modo autónomo** el 2026-10-11 (`proyecto/autorizacion-v3.md`). Las secuencias C-52 a C-54 están calculadas a mano y se confirman en la primera corrida. Derivados de `proyecto/brief.md` (v3).
+> Estado: **decididos en modo autónomo** el 2026-10-11 (`proyecto/autorizacion-v4.md`). Derivados de `proyecto/brief.md` (v4). La secuencia del nivel 7 (C-81) está calculada a mano; las de los niveles 8 a 10 (C-83 a C-85) las **generó el piloto automático** (D-09).
 > Tipos: **A** = prueba automática (`node --test "src/tests/*.test.js"`), **E** = revisión estática del revisor, **M** = verificación manual de Nanni.
 > Tolerancia numérica en pruebas A: `1e-9`, salvo que se indique otra.
-> Siguen vigentes con su ID los criterios de v1 (`proyecto/v1/criterios.md`) y de v2 (`proyecto/v2/criterios.md`), salvo los que aquí se reescriben con **(v3)**. C-36 de v2 queda acotada a los niveles 1 a 3 y la sustituye C-47 para la campaña completa.
+> Siguen vigentes con su ID los criterios de v1, v2 y v3 (`proyecto/v1/`, `proyecto/v2/`, `proyecto/v3/criterios.md`), salvo los que aquí se reescriben con **(v4)**.
 
 ## 1. Valores
 
 ### 1.1 `CONFIG`: sin cambios
-Mismos nombres y valores que en v1 y v2 (`proyecto/v2/criterios.md` §1.1). Empuje, giro, caja de colisión, suelo y límites de aterrizaje son iguales en los 6 niveles y solo viven en `CONFIG`.
+Mismos nombres y valores que v1 a v3. Límites de aterrizaje, giro, caja de colisión y suelo iguales en los 10 niveles.
 
-### 1.2 Niveles 1 a 3: idénticos a v2
-`LEVELS[0..2]` es `deepStrictEqual` a `LEVELS` de `entregables/v2/js/levels.js` (tabla en `proyecto/v2/criterios.md` §1.2). No llevan ninguno de los campos opcionales nuevos.
+### 1.2 Niveles 1 a 6: idénticos a v3
+`LEVELS.slice(0, 6)` es `deepStrictEqual` a `LEVELS` de `entregables/v3/js/levels.js` y ninguno trae `pickup`, `cargoThrust`, `capsules` ni `thrustFactor`.
 
-### 1.3 Niveles 4 a 6 (`LEVELS[3..5]` en `src/js/levels.js`)
+### 1.3 Niveles 7 a 10 (`LEVELS[6..9]`)
 
-| Campo | 4 · Luna gigante | 5 · Tormenta | 6 · Aproximación |
+| Campo | 7 · Primera entrega | 8 · Carga pesada | 9 · Cápsulas | 10 · Gran entrega |
+|---|---|---|---|---|
+| `id` / `theme` | `'entrega'` | `'carga'` | `'capsulas'` | `'final'` |
+| `name` | `'Primera entrega'` | `'Carga pesada'` | `'Cápsulas'` | `'Gran entrega'` |
+| `gravity` / `wind` | 20 / 0 | ver §1.3b | ver §1.3b | ver §1.3b |
+| `fuel` | 110 | | | |
+| `start` | `{ x: 70, y: 30 }` | | | |
+| `pickup` (A) | `{ x1: 40, x2: 100 }` | | | |
+| `platform` (B) | `{ x1: 160, x2: 220, speed: 0 }` | | | |
+| `cargoThrust` | — | **sí** | — | sí |
+| `capsules` | — | sí (D-14) | **sí** | sí |
+
+### 1.3b Niveles 8 a 10
+Fijados en T05 probando datos con el piloto (D-12) y escritos aquí antes de agregarlos a `levels.js`.
+
+| Campo | 8 · Carga pesada | 9 · Cápsulas | 10 · Gran entrega |
 |---|---|---|---|
-| `id` / `name` / `theme` | `'gigante'` / `'Luna gigante'` / `'gigante'` | `'tormenta'` / `'Tormenta'` / `'tormenta'` | `'aproximacion'` / `'Aproximación'` / `'aproximacion'` |
-| `gravity` (px/s²) | 30 | 20 | 0 |
-| `wind` (px/s²) | 0 | 0 | 0 |
-| `fuel` | 90 | 50 | 30 |
-| `fuelRate` (unidades/s, opcional) | **30** | — | — |
-| `gusts` (opcional) | — | **`[{ steps: 60, wind: 15 }, { steps: 120, wind: -15 }, { steps: 60, wind: 15 }]`** | — |
-| `start` | `{ x: 170, y: 30 }` | `{ x: 152, y: 30 }` | **`{ x: 24, y: 24, vx: 32, vy: 28 }`** |
-| `platform` (ancho) | `{ x1: 150, x2: 190, speed: 0 }` (40) | `{ x1: 136, x2: 184, speed: 0 }` (48) | `{ x1: 124, x2: 164, speed: 0 }` (40) |
+| `gravity` / `wind` | 20 / 0 | 20 / 0 | 22 / 0 |
+| `fuel` | 150 | 80 | 110 |
+| `start` | `{ x: 240, y: 30 }` | `{ x: 60, y: 30 }` | `{ x: 265, y: 30 }` |
+| `pickup` (A) | `{ x1: 210, x2: 270 }` | `{ x1: 30, x2: 90 }` | `{ x1: 240, x2: 290 }` |
+| `platform` (B) | `{ x1: 90, x2: 150, speed: 0 }` | `{ x1: 210, x2: 260, speed: 0 }` | `{ x1: 50, x2: 94, speed: 0 }` |
+| `cargoThrust` | **0.6** | — | 0.7 |
+| `capsules` | `{180,125, fuel 30, pts 50}` (D-14) | **`{110,112, fuel 25, pts 50}`, `{170,112, 25, 50}`, `{140,60, 0, 150}`** | `{200,115, 30, 50}`, `{130,115, 30, 50}`, `{165,70, 10, 100}` |
 
-`LEVELS.length === 6`; `id` en orden `luna`, `marte`, `asteroide`, `gigante`, `tormenta`, `aproximacion`.
+(Cápsulas como `{ x, y, fuel, points }`.) En 9 y 10 las dos primeras cápsulas son las de la ruta (obligatorias para el piloto); la tercera es opcional, arriba, solo por puntos.
 
-### 1.4 Mecánicas opcionales (valor por defecto = Luna)
+`LEVELS.length === 10`; `id` en orden `luna`, `marte`, `asteroide`, `gigante`, `tormenta`, `aproximacion`, `entrega`, `carga`, `capsulas`, `final`.
+
+### 1.4 Mecánicas opcionales nuevas (el valor por defecto deja el nivel como antes)
 
 | Campo | Significado | Si falta |
 |---|---|---|
-| `fuelRate` | consumo por segundo de empuje | `CONFIG.FUEL_RATE` (20) |
-| `gusts` | lista de fases `{ steps, wind }` que se repite; se **suma** a `wind` | sin ráfagas |
-| `start.vx`, `start.vy` | velocidad inicial | 0 |
+| `pickup: { x1, x2 }` | plataforma de recogida A (fija, en el suelo); `platform` pasa a ser la de entrega B | nivel normal de una plataforma |
+| `cargoThrust` | factor del empuje con el paquete a bordo | 1 |
+| `capsules: [{ x, y, fuel, points }]` | cápsulas fijas; `fuel` y `points` ≥ 0 | `[]` |
+| `thrustFactor` (interno, en `physics.js`) | factor del empuje en `step` | 1; ningún nivel lo trae en sus datos, lo pone la misión |
 
-**`windAt(level, n)`** (nueva, en `physics.js`): viento del paso con `n` pasos dados antes. Sin `gusts` → `level.wind`. Con `gusts`: `T = Σ steps`, `p = n mod T`; la fase `i` cubre `[s_i, s_i + steps_i)` con `s_i` la suma de las anteriores; regresa `level.wind + gusts[i].wind`. Tormenta: `T = 240`; n ∈ [0, 59] → +15, [60, 179] → −15, [180, 239] → +15, y se repite.
+**`physics.js`**: el empuje es `CONFIG.THRUST * (level.thrustFactor ?? 1)`. Nada más cambia.
 
-**Cambios en `step(state, input, level, n)`**: consumo `(level.fuelRate ?? CONFIG.FUEL_RATE) · DT`; viento `windAt(level, n)` en lugar de `level.wind`. **`createState(level)`**: `vx = level.start.vx ?? 0`, `vy = level.start.vy ?? 0` (los mismos 8 campos). Lo demás, igual que v2.
+### 1.5 Estado de misión (`src/js/mission.js`, global `MoonMission`)
+`MISSION = { CAPSULE_HALF: 4, REST_Y: CONFIG.GROUND_Y − CONFIG.SHIP_HALF }` (154).
 
-### 1.5 Regla de dificultad (req. 10)
-Mecánicas reconocidas (las que la física no tenía antes de su nivel): viento (`wind ≠ 0`), plataforma móvil (`platform.speed > 0`), consumo propio (`fuelRate` presente), ráfagas (`gusts` presente), velocidad inicial (`start.vx` o `start.vy` ≠ 0). Cambiar el valor de un campo base (gravedad, combustible, ancho, inicio) no es mecánica.
-- Cada nivel trae **como máximo una** mecánica que no aparezca en ningún nivel anterior. Luna 0; Marte: viento; Asteroide: plataforma móvil; Luna gigante: consumo; Tormenta: ráfagas; Aproximación: velocidad inicial.
-- La secuencia de referencia de cada nivel termina con `fuel ≥ 10` (C-38, C-39, C-52 a C-54; la de la Luna termina en 64).
-- Ningún nivel tiene límites de aterrizaje propios.
-- La dificultad final se confirma jugando (C-M8).
+`createMission(level)` → `{ ship: createState(level), n: 0, cargo: false, delivered: false, parked: false, taken: [false × capsules], capsulePoints: 0, status: 'flying', reason: null }`.
 
-### 1.6 Puntaje (`src/js/score.js`, global `MoonScore`)
-`scoreLanding(state, level, platform, steps)`:
-- Si `state.status !== 'landed'` → `null` (chocar no da puntos ni resta).
-- `precision = round(500 · (1 − |x − c| / (w/2)))`, con `c = (x1 + x2)/2` y `w = x2 − x1` de `platform` (la plataforma en el paso del contacto), acotado a [0, 500].
-- `fuel = round(300 · state.fuel / level.fuel)`, acotado a [0, 300].
-- `time = max(0, 200 − floor(steps / 4))`, donde `steps` = pasos de física desde el inicio del intento hasta el contacto, incluido.
-- `total = precision + fuel + time` (máximo 1000). Regresa `{ precision, fuel, time, total }`.
+`capsuleHits(ship, capsules, taken)` → índices `i` con `!taken[i]`, `|ship.x − c.x| ≤ SHIP_HALF + CAPSULE_HALF` y `|ship.y − c.y| ≤ SHIP_HALF + CAPSULE_HALF` (10), en orden.
 
-`campaignTotal(best, levels)` = suma de `best[level.id]` de los niveles de `levels` (los que falten cuentan 0; las llaves desconocidas se ignoran). **Total de campaña = suma de los mejores puntajes por nivel** (D-07). `SCORE` exporta las constantes 500, 300, 200 y 4.
+`missionStep(m, input, level)` → misión nueva (no modifica `m`, `input` ni `level`):
+1. Si `m.status !== 'flying'`, regresa una copia igual.
+2. `leg` = `level`; si `m.cargo` y `level.cargoThrust` existe, `leg = { ...level, thrustFactor: level.cargoThrust }`.
+3. Si `m.parked` y no (`input.thrust` y `ship.fuel > 0`): solo `n + 1`; la nave no se mueve.
+4. Si no: `ship = step(m.ship, input, leg, m.n)`, `parked = false`.
+5. Si el nivel tiene `pickup` y la nave tocó el suelo (`status !== 'flying'` y `crashReason !== 'out_of_bounds'`): `where` = A si `A.x1 ≤ x ≤ A.x2`, si no B; el resultado se reemplaza por `evaluateLanding(ship, { x1, x2, vx: 0 })` de A, o por `evaluateLanding(ship, platformAt(level, n + 1))` de B.
+6. Si no chocó: por cada índice de `capsuleHits`, `taken[i] = true`, `fuel = min(level.fuel, fuel + c.fuel)`, `capsulePoints += c.points`.
+7. Choque → `status: 'crashed'`, `reason = crashReason`.
+8. Aterrizaje: sin `pickup` → `status: 'landed'`. Con `pickup`: en B con paquete → `delivered: true`, `status: 'landed'`; en A sin paquete → `cargo: true` y estaciona; cualquier otro → estaciona. **Estacionar** = `parked: true` y `ship = { ...ship, y: REST_Y, vx: 0, vy: 0, angle: 0, status: 'flying', crashReason: null }`. Si al estacionar `fuel ≤ 0` → `status: 'crashed'`, `reason: 'no_fuel'`.
+9. `n + 1`.
 
-### 1.7 Guardado (`src/js/save.js`, global `MoonSave`)
-- Llave `STORAGE_KEY = 'mensajero-orbital'`. Forma: `{ unlocked: n, best: { [id]: entero } }`. Vacío: `{ unlocked: 1, best: {} }`.
-- `parseSave(text, levels)`: JSON inválido o nulo → vacío. `unlocked` entero en [1, `levels.length`] (si se pasa, se acota; si no es entero ≥ 1, vale 1). `best` solo con `id` conocidos y enteros ≥ 0.
-- `recordLanding(save, n, levels, score)` → guardado **nuevo** (no modifica el recibido): `unlocked = max(unlocked, min(n + 1, levels.length))`; `best[id] = max(best[id] ?? 0, score.total)`.
-- `loadSave(storage, levels)`, `writeSave(storage, save)` y `clearSave(storage)`: todo acceso a `storage` va en try/catch; con `storage` nulo o que lanza, `loadSave` regresa vacío y `writeSave`/`clearSave` regresan `false`, sin lanzar.
-- `resolveStart(search, save, levels)` → `{ level, persist, reset }`:
-  - Sin parámetros: `{ level: save.unlocked, persist: true, reset: false }`.
-  - `?nuevo`: `reset: true`, nivel 1, `persist: true`.
-  - `?nivel=N` (con o sin `?nuevo`): `level = N` si es entero en [1, `levels.length`], si no 1; `persist: false`. `reset` es `true` solo si viene `?nuevo`.
+Sin `pickup` y sin `capsules`, `missionStep(m, input, level).ship` es exactamente `step(m.ship, input, level, m.n)`.
 
-### 1.8 Orden de scripts en `src/index.html` (v3)
-Todos clásicos, en este orden: 1) `https://cdn.jsdelivr.net/npm/phaser@3.80.1/dist/phaser.min.js`, 2) `js/physics.js`, 3) `js/levels.js`, 4) `js/score.js`, 5) `js/save.js`, 6) `js/sprites.js`, 7) `js/game.js`.
+### 1.6 Regla de dificultad (v4)
+Mecánicas reconocidas: las de v3 (viento, plataforma móvil, consumo, ráfagas, velocidad inicial) más **misión** (`pickup` presente), **carga pesada** (`cargoThrust` presente y ≠ 1) y **cápsulas** (`capsules` no vacía). Cada nivel estrena ≤ 1, salvo la **excepción del nivel 8** aprobada por Nanni (D-14), que estrena carga pesada y cápsulas; estrenos: `[—, viento, plataforma móvil, consumo, ráfagas, velocidad inicial, misión, carga pesada + cápsulas, —, —]`. Toda secuencia de referencia termina con `fuel ≥ 10`; la del nivel 8, con `fuel ≥ 45` (30 % de su combustible inicial, D-14). Ningún nivel tiene campos `land`/`limit`. En las misiones, A y B no se enciman, caben en la pantalla y B tiene `speed: 0`; las cápsulas quedan dentro de la pantalla y arriba del suelo.
+
+### 1.7 Puntaje (`score.js`)
+`SCORE` y `scoreLanding` sin cambios. Nuevo `MISSION_SCORE = { DELIVERY: 400, PRECISION_MAX: 200, FUEL_MAX: 200, TIME_MAX: 200, STEPS_PER_TIME_POINT: 8 }` y `scoreRun(m, level, platform)`:
+- `m.status !== 'landed'` → `null`.
+- Sin `pickup`: `scoreLanding(m.ship, level, platform, m.n)` más `capsules: m.capsulePoints`, y `total` sumado.
+- Con `pickup`: `delivery: 400`; `precision = round(200 · (1 − |x − c| / (w/2)))` en [0, 200] con `platform` = B; `fuel = round(200 · fuel / level.fuel)` en [0, 200]; `time = max(0, 200 − floor(n / 8))`; `capsules = m.capsulePoints`; `total` = suma.
+
+### 1.8 Orden de scripts (v4)
+Phaser 3.80.1 (URL fija) → `js/physics.js` → `js/levels.js` → `js/mission.js` → `js/score.js` → `js/save.js` → `js/sprites.js` → `js/game.js`.
 
 ## 2. Criterios automáticos (A)
 
@@ -76,110 +93,99 @@ Todos clásicos, en este orden: 1) `https://cdn.jsdelivr.net/npm/phaser@3.80.1/d
 | ID | Criterio |
 |---|---|
 | C-01 a C-14 | `src/tests/physics.test.js` de v1, **sin cambios**. |
-| C-27, C-29 a C-35, C-38 a C-41 | Los de v2 (`src/tests/worlds.test.js`), sin cambios. |
-| C-26 (v3) | `require('../js/levels.js')` exporta `LEVELS` (6 entradas) y `nextLevel`; `id` y `name` en el orden de §1.3. |
-| C-28 (v3) | Como v2, pero el estado inicial `vx = vy = 0` se comprueba en los niveles 1 a 3 (los nuevos los cubren C-46 y C-51). |
-| C-36 (v3) | Regla de dificultad de v2 aplicada **solo** a los niveles 1 a 3; ningún nivel tiene límites de aterrizaje. |
-| C-37 (v3) | `nextLevel`: (1,'landed') → 2; (2,'landed') → 3; (3,'landed') → 4; (6,'landed') → `null`; (n,'crashed') → n para 1, 2, 3 y 6; (1,'flying') lanza error. |
+| C-27 a C-41, C-44 a C-63 | Los de v2 y v3, sin cambios, salvo los que fallen **solo** por haber 10 niveles (se ajusta el número y se registra la falla en la bitácora). |
 
-Los cambios a C-26, C-28, C-36 y C-37 se hacen en los tests de v2 **solo después** de ver que fallan por haber 6 niveles (regla 2 de la autorización), y se registran en la bitácora con la falla observada.
-
-### 2.2 Nuevos (en `src/tests/campaign.test.js` y `src/tests/score.test.js`)
-
+### 2.2 Nuevos (en `src/tests/mission.test.js`)
 | ID | Criterio | Esperado |
 |---|---|---|
-| C-44 | Niveles 1 a 3 = v2 (datos) | `LEVELS.slice(0, 3)` `deepStrictEqual` `LEVELS` de `entregables/v2/js/levels.js`; ninguno trae `fuelRate`, `gusts`, `start.vx` ni `start.vy` |
-| C-45 | Niveles 1 a 3 = v2 (física) | Con las secuencias de C-11, C-38 y C-39, `step` de `src/` y de `entregables/v2/js/physics.js` dan estados `deepStrictEqual` en cada paso; `createState` igual en los 3 |
-| C-46 | Datos de los niveles 4 a 6 | Iguales a la tabla de §1.3; `createState(L)` tiene los 8 campos en los 6 niveles; en 4 a 6: `x`, `y`, `fuel` del nivel, `vx = start.vx ?? 0`, `vy = start.vy ?? 0` |
-| C-47 | Regla de dificultad v3 | Recorriendo `LEVELS` con las mecánicas de §1.5: cada nivel estrena ≤ 1; el conjunto estrenado es exactamente el de §1.5; ningún nivel tiene campos `land`/`limit` |
-| C-48 | Consumo por nivel | Luna gigante, 60 pasos con ↑: fuel = 60, vy = −20, y = 30 − 61/6. Luna, 60 pasos con ↑: fuel = 80 (consumo por defecto) |
-| C-49 | `windAt` | Tormenta: n = 0, 59 → 15; 60, 179 → −15; 180, 239 → 15; 240 → 15; 300 → −15; 479 → 15. Marte (n = 0 y 1000) → −4; Luna → 0 |
-| C-50 | Ráfagas en la física | Tormenta, sin teclas: tras 60 pasos vx = 15, x = 159.625, vy = 20, fuel = 50; tras 180 pasos vx = −15, x = 159.375 |
-| C-51 | Velocidad inicial y gravedad 0 | `gravity === 0`; `createState(APROX)` con vx 32, vy 28; tras 60 pasos sin teclas: vx = 32, vy = 28, x = 56, y = 52 |
-| C-52 | Secuencia de Luna gigante (§2.3) | `landed`; pasos ∈ [246, 250]; vy ∈ [7, 11]; x = 170; vx = 0; \|angle\| ≤ 1e-9; fuel = 21 ± 0.001 (≥ 10) |
-| C-53 | Secuencia de Tormenta (§2.3) | `landed`; pasos ∈ [259, 263]; vy ∈ [7.5, 10]; vx ∈ [4.5, 6]; x ∈ [152, 154]; \|angle\| ≤ 1e-9; fuel = 50 − 94/3 (18.667) ± 0.001 (≥ 10) |
-| C-54 | Secuencia de Aproximación (§2.3) | `landed`; pasos ∈ [383, 391]; vy ∈ [9.5, 9.8]; vx ∈ [0, 0.5]; x ∈ [141, 144.5]; \|angle\| ≤ 1e-9; fuel = 30 − 44/3 (15.333) ± 0.001 (≥ 10) |
-| C-55 | Determinismo y pureza (4 a 6) | Cada secuencia corrida dos veces da lo mismo; `step(s, ALL, L, 5)` no modifica `s` ni `L`; desde `landed`/`crashed` regresa el mismo estado |
-| C-56 | `physics.js` exporta | `CONFIG`, `createState`, `step`, `evaluateLanding`, `platformAt`, `windAt`; `step.length === 2` |
-| C-57 | `scoreLanding` | Plataforma `{ x1: 150, x2: 190 }`, nivel con fuel 90: crashed → `null`; (x 170, fuel 90, 0 pasos) → 500/300/200 = 1000; (180, 45, 400) → 250/150/100 = 500; (150, 0, 800) → 0/0/0 = 0; (175, 21, 248) → 375/70/138 = 583; 1000 pasos → time 0; 3 pasos → 200; 4 → 199. Con `{ x1: 140.25, x2: 188.25 }` y x = 164.25 → precision 500. No modifica sus argumentos |
-| C-58 | `campaignTotal` | `{ luna: 700, marte: 500, zzz: 999 }` → 1200; `{}` → 0 |
-| C-59 | `parseSave` y `recordLanding` | Casos de §1.7: nulo, JSON roto, unlocked 99 → 6, 0 → 1, 2.5 → 1, `best` con id desconocido, negativo o no entero → se descarta. `recordLanding`: 1ª vez nivel 1 con 700 → `{ unlocked: 2, best: { luna: 700 } }`; luego 600 → sigue 700; nivel 6 → unlocked 6; nivel 2 con unlocked 5 → sigue 5; no modifica el guardado recibido |
-| C-60 | Almacenamiento que falla | Con `storage` nulo o cuyos métodos lanzan: `loadSave` → vacío, `writeSave` → `false`, `clearSave` → `false`, sin lanzar. Con uno que funciona: `writeSave` guarda `JSON.stringify(save)` en `STORAGE_KEY` y `loadSave` lo regresa igual; `clearSave` lo borra |
-| C-61 | `resolveStart` | `''` con unlocked 4 → `{ 4, persist: true, reset: false }`; `'?nuevo'` → `{ 1, true, true }`; `'?nivel=2'` → `{ 2, false, false }`; `'?nivel=9'` y `'?nivel=abc'` → `{ 1, false, false }`; `'?nuevo&nivel=3'` → `{ 3, false, true }` |
-| C-62 | Temas | Con `sprites.js` cargado en Node: cada `theme` de `LEVELS` existe en `THEMES`; cada tema usa solo índices 0 a 8; `SHIP_COLORS` solo 9 a F; paleta (tema + nave) ≤ 16 colores |
-| C-63 | Puntaje de la referencia | `scoreLanding` del final de C-52 con `platformAt(GIGANTE, pasos)` → `{ precision: 500, fuel: 70, time: 138, total: 708 }` |
+| C-66 | `thrustFactor` | Luna, 60 pasos con ↑ y `thrustFactor: 0.5`: vy = −5, fuel = 80. Sin él, vy = −30 (igual que v1) |
+| C-67 | Niveles 1 a 6 = v3 (datos) | §1.2 contra `entregables/v3/js/levels.js`, resuelta desde la raíz de `moon/` |
+| C-68 | Niveles 1 a 6 = v3 (paso a paso) | Con las secuencias de v1 a v3 de los 6 niveles: `step` de `src/` y de `entregables/v3/js/physics.js` dan estados `deepStrictEqual` en cada paso; y `missionStep(...).ship` también, con `n` = pasos y `status` final `'landed'` |
+| C-69 | `createMission` | Campos de §1.5; `taken` con un `false` por cápsula; `ship` con los 8 campos |
+| C-70 | `capsuleHits` | Cápsula en (100, 100): nave en (110, 110) → toca; (110.01, 100) → no; (90, 90) → toca; tomada → no; varias → índices en orden |
+| C-71 | Pureza y determinismo | `missionStep` no modifica `m`, `input` ni `level`; terminada (`landed`/`crashed`) regresa lo mismo |
+| C-72 | Recoger en A | Nivel 7, nave en (70, 153.99) con vy 5 sin teclas: `cargo` true, `parked` true, nave en y 154 con vx = vy = angle = 0, `status` `'flying'`, `n` = 1 |
+| C-73 | Estacionado y despegue | Sin ↑ la nave no cambia y `n` sube; con ↑ la nave sube (y < 154), gasta combustible y `parked` = false |
+| C-74 | Plataforma que no avanza | B sin paquete → estaciona sin `cargo`; A con paquete → estaciona; B con paquete → `landed`, `delivered` true |
+| C-75 | Choque en misión | Entre A y B → `crashed`/`off_platform`; en A con vy 20 → `speed_v`; fuera de pantalla → `out_of_bounds` |
+| C-76 | Sin combustible | Aterrizar en A con fuel 0 → `crashed`, `reason: 'no_fuel'` |
+| C-77 | Carga pesada | Con `cargoThrust: 0.6` y paquete: 60 pasos ↑ desde A dan vy = 20 − 30 = −10; sin paquete o sin el campo, −30 |
+| C-78 | Cápsulas en la misión | Suma `fuel` con tope en `level.fuel` y `points`; cada una se toma una vez; al chocar no se toma |
+| C-79 | Nivel 7 y regla v4 | Datos de §1.3; regla de §1.6 en los 10 niveles |
+| C-80 | `scoreRun` | `null` si no ganó; sin `pickup` = `scoreLanding` + cápsulas; con `pickup` = fórmula §1.7 (casos fijos en la prueba) |
 
-### 2.3 Secuencias de referencia (calculadas a mano el 2026-10-11)
-En el paso k se llama `step(s, input, nivel, k − 1)`; se corre hasta que `status !== 'flying'` o 900 pasos.
+### 2.3 Secuencias (en `src/tests/sequences.test.js`)
+En el paso k se llama `missionStep(m, input_k, nivel)`; se corre hasta `status !== 'flying'` o 2000 pasos. Las listas son fijas: `[pasos, teclas]` con teclas `''`, `'U'`, `'L'`, `'R'` (o combinaciones).
 
-| Nivel | Pasos y teclas |
+| ID | Criterio |
 |---|---|
-| Luna gigante | 1–110 nada; 111–… ↑ hasta tocar |
-| Tormenta | 1–164 nada; 165–258 ↑; 259–… nada |
-| Aproximación | 1–160 nada; 161–200 ←; 201–244 ↑; 245–284 →; 285–… nada |
+| C-81 | Nivel 7, secuencia a mano (§2.4): toca A en el paso 261 (contacto con y 154.01944 y vy 8.66667 ± 1e-5, mirado con `step` sobre el estado del paso 260) y gana en el **583** con x = 189.93317, vy = 9.49236 y fuel = 25.66667 (valores de la tabla §2.4, cada uno ± 0.001) y vx = 0 (± 1e-9). Puntaje: entrega 400, precisión 200, combustible 47, tiempo 128 = **775** |
+| C-82 | El piloto (`src/tests/autopilot.js`) reproduce la tabla a mano del nivel 7 en cada fin de fase (± 1e-5, la tabla tiene 5 decimales). En la fila "toca A" se compara el estado ya estacionado (y 154, velocidad y ángulo 0, mismo x y combustible); el contacto mismo (y 154.01944, vy 8.66667) lo comprueba C-81 |
+| C-83 | Nivel 8 con su lista fija (regenerada en D-14): gana, toma la cápsula, `fuel ≥ 45` (30 % de 150), valores finales de §2.5 |
+| C-84 | Nivel 9 con su lista fija: gana, cápsulas obligatorias tomadas, `fuel ≥ 10`, valores de §2.5 |
+| C-85 | Nivel 10 con su lista fija: gana, cápsulas obligatorias tomadas, `fuel ≥ 10`, valores de §2.5 |
+| C-86 | Determinismo de las 4 secuencias (dos corridas iguales) |
+| C-87 | Datos de los niveles 8 a 10 iguales a §1.3b; `LEVELS.length === 10` |
+| C-88 | Temas: los 10 temas existen, paleta ≤ 16, temas 0–8 y nave 9–F; sprites de paquete y cápsulas usan solo `.` y 9–F |
+| C-90 | Solo cambia el nivel 8 (D-14): `sha256(JSON.stringify(nivel))` de los otros 9 niveles y de las listas de los niveles 7, 9 y 10 son iguales a las huellas tomadas el 2026-10-11 antes del cambio |
 
-Cálculo por fases con fórmulas cerradas (`v = v0 + a·k/60`, `Δ = k·v0/60 + a·k(k+1)/7200`), sin usar `physics.js`. Contacto cuando `y ≥ 154`.
+### 2.4 Secuencia del nivel 7 (calculada a mano el 2026-10-11)
+Fórmulas cerradas por fase (`v = v0 + a·k/60`, `Δ = k·v0/60 + a·k(k+1)/7200`), sin usar `physics.js` ni `mission.js`. Al tocar A la nave se estaciona en y = 154 con velocidad y ángulo 0.
 
-**Luna gigante** (g = 30; con ↑, `ay = −20`; consumo 0.5 por paso):
-
-| Fase | Pasos | Hasta | vy | y | Combustible |
-|---|---|---|---|---|---|
-| Caída | 110 | 110 | 55 | 80.875 | 90 |
-| Empuje hasta tocar | 138 | **248** | **9** | 154.09167 | **21** |
-
-x = 170 todo el tiempo (sin viento ni giro). Sensibilidad: cayendo 111 pasos toca con vy 13.17; con 109 no alcanza a tocar con empuje continuo.
-
-**Tormenta** (g = 20; con ↑, `ay = −30`; ráfagas de §1.4, por tramos):
-
-| Fase | Pasos | Hasta | vy | y | vx | x | Combustible |
-|---|---|---|---|---|---|---|---|
-| Caída | 164 | 164 | 54.66667 | 105.16667 | −11 | 162.875 | 50 |
-| Empuje | 94 | 258 | 7.66667 | 153.60278 | 4.5 | 152.7125 | 18.66667 |
-| Caída | 3 | **261** | **8.66667** | 154.01944 | **5.25** | **152.9625** | 18.66667 |
-
-Contacto en la posición 21 del 2º ciclo (ráfaga +15, vx todavía chica). Vecinos: empuje de 93 o 95 pasos → vy 9.5 / 8.17, mismo rango.
-
-**Aproximación** (g = 0; a −60° con ↑: `ax = −43.30127`, `ay = −25`):
-
-| Fase | Pasos | Hasta | vy | y | vx | x | Ángulo | Combustible |
+| Fase | Pasos | Hasta | x | y | vx | vy | Ángulo | Combustible |
 |---|---|---|---|---|---|---|---|---|
-| Deriva | 160 | 160 | 28 | 98.66667 | 32 | 109.33333 | 0 | 30 |
-| Giro ← | 40 | 200 | 28 | 117.33333 | 32 | 130.66667 | −60 | 30 |
-| Empuje | 44 | 244 | 9.66667 | 130.99167 | 0.24574 | 142.22548 | −60 | 15.33333 |
-| Giro → | 40 | 284 | 9.66667 | 137.43611 | 0.24574 | 142.38931 | 0 | 15.33333 |
-| Deriva | 103 | **387** | **9.66667** | 154.03056 | **0.24574** | **142.81115** | 0 | **15.33333** |
+| nada | 164 | 164 | 70 | 105.16667 | 0 | 54.66667 | 0 | 110 |
+| ↑ | 94 | 258 | 70 | 153.60278 | 0 | 7.66667 | 0 | 78.66667 |
+| nada (toca A) | 3 | **261** | 70 | 154.01944 | 0 | 8.66667 | 0 | 78.66667 |
+| ↑ (despegue) | 17 | 278 | 70 | 152.72500 | 0 | −8.5 | 0 | 73 |
+| → | 30 | 308 | 70 | 151.05833 | 0 | 1.5 | 45 | 73 |
+| ↑ | 71 | 379 | 95.10229 | 141.93104 | 41.83715 | −16.67048 | 45 | 49.33333 |
+| nada | 41 | 420 | 123.69101 | 135.32288 | 41.83715 | −3.00382 | 45 | 49.33333 |
+| ← | 60 | 480 | 165.52816 | 142.48573 | 41.83715 | 16.99618 | −45 | 49.33333 |
+| ↑ (frena) | 71 | 551 | 189.93317 | 151.69559 | 0 | −1.17430 | −45 | 25.66667 |
+| → | 30 | 581 | 189.93317 | 153.69177 | 0 | 8.82570 | 0 | 25.66667 |
+| nada (toca B) | 2 | **583** | 189.93317 | 154.00262 | 0 | 9.49236 | 0 | 25.66667 |
 
-La nave nunca sube (vy > 0) ni toca un borde; la plataforma 124–164 tiene su centro en 144.
+Se confirma en la primera corrida. Si no da, no se ajusta la prueba: se diagnostica el cálculo, la secuencia o el código.
 
-**Se confirman en la primera corrida.** Si una secuencia no da lo esperado, no se ajustan la prueba ni los rangos: se diagnostica si falla la secuencia, el cálculo o la física.
+### 2.5 Secuencias de los niveles 8 a 10 (GENERADAS por el piloto el 2026-10-11)
+Plantilla del piloto: tramo a A (nada, ↑, nada hasta tocar) y salto (↑, giro, ↑, deriva, giro contrario, ↑ igual al primero, enderezar, ↑ opcional, nada hasta tocar B). Criterio: más combustible al final y luego menos pasos, con vy ≤ 10 en cada contacto, al menos 10 px de las orillas de B, sin rebotes, cápsulas obligatorias tomadas y fuel ≥ 10.
+
+| Nivel | Lista fija | Opciones del piloto | Recoge | Gana | x | vy | fuel | Cápsulas | Puntaje |
+|---|---|---|---|---|---|---|---|---|---|
+| 8 | 164 nada, 93 ↑, 4 nada, 40 ↑, 20 ←, 122 ↑, 35 nada, 40 →, 122 ↑, 20 ←, 2 nada (regenerada en D-14) | `dir −1, turn 20, required [0], fall 155–170, burn 85–100, lift 30–50, push 115–135, drift 20–50, flare 0–12` | 261 | 662 | 139.858333 | 8.011567 | 54.333333 | la única | 400 + 68 + 72 + 118 + 50 = 708 |
+| 9 | 164 nada, 93 ↑, 4 nada, 25 ↑, 30 →, 78 ↑, 76 nada, 60 ←, 78 ↑, 30 →, 7 ↑, 1 nada | `turn 30, required [0,1], fall 155–170, burn 75–100, lift 16–34, push 72–90, drift 56–96, flare 0–12` | 261 | 646 | 223.930922 | 9.742785 | 36.333333 | 1ª y 2ª | 400 + 111 + 91 + 120 + 100 = 822 |
+| 10 | 151 nada, 102 ↑, 5 nada, 33 ↑, 20 ←, 146 ↑, 70 nada, 40 →, 146 ↑, 20 ←, 7 nada | `dir −1, turn 20, required [0,1], fall 110–170, burn 60–140, lift 24–42, push 138–158, drift 50–90, flare 0–10` | 258 | 740 | 83.311111 | 9.970340 | 27.666667 | 1ª y 2ª | 400 + 97 + 50 + 108 + 100 = 755 |
+
+Las pruebas comparan con tolerancia 1e-6 y vx = 0 (± 1e-9). Si una deja de dar esto, no se ajusta la prueba: se diagnostica el cambio.
 
 ## 3. Criterios estáticos (E)
 
 | ID | Criterio |
 |---|---|
-| C-15 (v3) | `src/index.html` carga los 7 scripts de §1.8 en ese orden, todos clásicos, Phaser 3.80.1 desde la URL fija. |
-| C-16 (v3) | `physics.js`, `levels.js`, `score.js` y `save.js` no mencionan `Phaser`, `window`, `document`, `localStorage`, `Date`, `performance` ni `Math.random`, y no hacen `require` de otros archivos. `score.js` no usa nada de `physics.js` (recibe la plataforma como argumento). |
-| C-18 (v3) | Igual que v2 (acumulador, tope de 5 pasos, `step(state, input, level, stepCount)`, `stepCount` reiniciado en cada intento). |
-| C-21 (v3) | HUD en HTML: "NIVEL N/total · NOMBRE" con total = `LEVELS.length`; fila de puntaje total con `campaignTotal(save.best, LEVELS)`; fila de viento visible si `level.wind !== 0` o hay `gusts`, con el valor actual `windAt(level, stepCount)` (flecha y magnitud); lo demás igual que v2. |
-| C-22 (v3) | `src/README.md`: los 6 niveles, puntaje (fórmula), guardado, `?nivel=N` (no guarda), `?nuevo` (borra) y comando de pruebas. |
-| C-23 (v3) | `node --test "src/tests/*.test.js"` con 0 fallas, cubriendo todos los criterios **A**: C-01 a C-14, C-26 a C-41 y C-44 a C-63 (C-42 y C-43 son E). |
-| C-25 (v3) | Arte: temas `luna`, `marte`, `asteroide`, `gigante`, `tormenta`, `aproximacion`, con máximo 16 colores cada uno; nave y llama iguales en todos, solo índices 9 a F; medidas desde `CONFIG` y del nivel; los temas de v2 sin cambios. |
-| C-42 (v3) | Nivel inicial con `MoonSave.resolveStart(location.search, …)`. El acceso a `window.localStorage` va dentro de try/catch; si falla se juega igual, sin guardar. Con `reset` se llama `clearSave`. Si `persist` es falso, nunca se llama `writeSave`. |
-| C-43 (v3) | Pantallas como v2. Éxito y misión completa muestran además "Precisión P · Combustible F · Tiempo T" y "Puntaje X", y "Nuevo récord" o "Mejor: Y". Choque no muestra puntaje. |
-| C-64 | Al aterrizar, `game.js` llama `scoreLanding(state, level, platformAt(level, stepCount), stepCount)`, actualiza el guardado en memoria con `recordLanding` y lo escribe con `writeSave` solo si `persist`. Al chocar no cambia ni el guardado ni el total. |
-| C-65 | Sin sonido (ni `this.sound` ni `Audio`), sin menú, la misma versión de Phaser, y nada de v4. |
+| C-15 (v4) | `index.html` carga los 8 scripts de §1.8 en ese orden, clásicos, Phaser 3.80.1. |
+| C-16 (v4) | `physics.js`, `levels.js`, `mission.js`, `score.js` y `save.js` no mencionan `Phaser`, `window`, `document`, `localStorage`, `Date`, `performance` ni `Math.random`; no hacen `require` (salvo `mission.js`, que en Node puede hacer `require('./physics.js')`). |
+| C-18 (v4) | `game.js` avanza con `missionStep(mission, input, level)` en el acumulador de paso fijo (tope 5); no llama a `step` directo. |
+| C-21 (v4) | HUD: "NIVEL N/total · NOMBRE" con `LEVELS.length`; fila Paquete solo en niveles con `pickup` (por recoger / a bordo / entregado); fila Cápsulas solo si hay (`k/total`); lo demás como v3. |
+| C-22 (v4) | `README.md`: los 10 niveles, misión, carga pesada, cápsulas, puntaje de misión, `?nivel=N`, `?nuevo` y comando de pruebas. |
+| C-23 (v4) | `node --test "src/tests/*.test.js"` con 0 fallas, cubriendo todos los criterios A. |
+| C-25 (v4) | Arte: 10 temas con ≤ 16 colores; nave, llama, paquete y cápsulas solo con 9 a F; temas de v3 sin cambios; A se distingue de B. |
+| C-43 (v4) | Pantallas: en misión, éxito muestra "Entrega · Precisión · Combustible · Tiempo" y "Cápsulas" si el nivel tiene; choque y "sin combustible" con su mensaje; R o Espacio reinicia el nivel completo. |
+| C-64 (v4) | Al ganar: `scoreRun(mission, level, platformAt(level, n))` → `recordLanding` → `writeSave` solo si `persist`. |
+| C-65 (v4) | Sin sonido, menú, rocas, niebla ni ráfagas nuevas; misma versión de Phaser. |
+| C-89 | El piloto (`src/tests/autopilot.js`) no se carga ni se menciona en `src/index.html` ni en `src/js/`. |
 
 ## 4. Criterios manuales (M): Nanni
-Toda revisión de consola es en la **consola del navegador** (F12), no en la de VS Code.
+Consola = la del navegador (F12).
 
 | ID | Criterio |
 |---|---|
-| C-M1 (v3) | Con doble clic en `src/index.html` (con internet), los 6 niveles cargan y se juegan sin errores propios en la consola del navegador. Se acepta el aviso conocido de `file://`. |
-| C-M2 (v3) | Cada nivel se puede ganar a mano, y la campaña 1 → 6 → misión completa → Luna se completa sin recargar. |
-| C-M3 | Las pantallas de éxito, choque y misión completa se ven, y R o Espacio hace lo que dice cada una. |
-| C-M4 (v3) | Lo visual de v2, más tres temas nuevos distinguibles: Luna gigante, Tormenta y Aproximación. La nave es la misma en todos y la plataforma se distingue del suelo. |
-| C-M5 (v3) | `index.html?nivel=4` arranca en Luna gigante; jugar así no cambia lo guardado (al abrir sin parámetros sigue el nivel guardado). |
-| C-M6 (v3) | El HUD muestra "NIVEL N/6 · NOMBRE" y el total. En Tormenta, el viento cambia de dirección en ciclos y la flecha del HUD lo sigue. |
-| C-M7 | Guardado: al ganar el nivel 1 y recargar sin parámetros, arranca en el 2; el mejor puntaje se conserva. `index.html?nuevo` vuelve a empezar desde la Luna con total 0. |
-| C-M8 | Curva de dificultad: los niveles 4 a 6 se sienten más difíciles que 1 a 3 y en orden razonable (feedback para afinar). |
-| C-M9 | La pantalla de éxito muestra el desglose del puntaje y el total del HUD sube solo al mejorar un nivel. |
+| C-M1 (v4) | Doble clic en `src/index.html` (con internet): los 10 niveles cargan sin errores propios en la consola. |
+| C-M2 (v4) | Cada nivel se puede ganar a mano; la campaña 1 → 10 → misión completa → Luna sin recargar. |
+| C-M3 (v4) | En una misión: el paquete desaparece de A al aterrizar ahí, el HUD dice "A bordo", se despega con ↑, y al aterrizar en B dice "Entregado" y gana. Chocar después de recoger reinicia todo (paquete de nuevo en A). |
+| C-M4 (v4) | Carga pesada se siente: con el paquete la nave sube más lento en los niveles 8 y 10. |
+| C-M5 (v4) | Cápsulas: se ven, desaparecen al tocarlas, el HUD cuenta k/total y el combustible sube con las que dan combustible. |
+| C-M6 (v4) | Temas de 7 a 10 distinguibles; nave igual en todos; A y B se distinguen. |
+| C-M7 (v4) | `?nivel=7` a `?nivel=10` arrancan en ese nivel sin cambiar lo guardado; `?nuevo` empieza desde la Luna; el guardado sigue funcionando al recargar. |
+| C-M8 (v4) | Curva de dificultad de 7 a 10 razonable (feedback). |
+| C-M9 (v4) | El desglose del puntaje de misión se ve en la pantalla de éxito y el total del HUD sube. |

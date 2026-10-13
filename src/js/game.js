@@ -1,14 +1,16 @@
 // Escenas de Mensajero Orbital: vuelo (física de paso fijo, entrada, HUD) y pantalla final.
-// Depende de los globales Phaser, MoonPhysics, MoonLevels, MoonScore, MoonSave y MoonSprites (cargados antes en index.html).
+// Depende de los globales Phaser, MoonPhysics, MoonLevels, MoonMission, MoonScore, MoonSave y MoonSprites (cargados antes en index.html).
 // Campaña: aterrizar avanza de nivel, chocar repite (regla en MoonLevels.nextLevel).
 // Puntaje al aterrizar (MoonScore) y guardado del avance y los mejores puntajes (MoonSave).
+// v4: cada paso avanza la misión (MoonMission.missionStep), que envuelve a step: paquete, estacionamiento y cápsulas.
 // El HUD y los textos finales son elementos HTML encima del canvas (#hud, #end) para que se lean nítidos.
 (function () {
   'use strict';
 
-  const { CONFIG, createState, step, platformAt, windAt } = MoonPhysics;
+  const { CONFIG, platformAt, windAt } = MoonPhysics;
   const { LEVELS, nextLevel } = MoonLevels;
-  const { scoreLanding, campaignTotal } = MoonScore;
+  const { createMission, missionStep } = MoonMission;
+  const { scoreRun, campaignTotal } = MoonScore;
   const KEYS = MoonSprites.KEYS;
 
   const MAX_STEPS_PER_FRAME = 5;
@@ -23,6 +25,7 @@
     angle: 'La nave estaba muy inclinada',
     off_platform: 'Fuera de la plataforma',
     out_of_bounds: 'Te saliste de la pantalla',
+    no_fuel: 'Te quedaste sin combustible',
   };
 
   // El almacenamiento del navegador puede no existir o lanzar al pedirlo (bloqueado o modo privado):
@@ -61,6 +64,10 @@
     total: document.getElementById('total-val'),
     windRow: document.getElementById('wind-row'),
     wind: document.getElementById('wind-val'),
+    packageRow: document.getElementById('package-row'),
+    packageVal: document.getElementById('package-val'),
+    capsuleRow: document.getElementById('capsule-row'),
+    capsuleVal: document.getElementById('capsule-val'),
     fuelRow: document.getElementById('fuel-row'),
     fuelFill: document.getElementById('fuel-fill'),
     fuelVal: document.getElementById('fuel-val'),
@@ -112,7 +119,12 @@
     if (result) {
       const sc = result.score;
       const record = result.prevBest === undefined || sc.total > result.prevBest;
-      endScoreEl.textContent = 'Precisión ' + sc.precision + ' · Combustible ' + sc.fuel + ' · Tiempo ' + sc.time;
+      // En misiones, la entrega va primero; las cápsulas solo si el nivel tiene.
+      const parts = [];
+      if (sc.delivery !== undefined) parts.push('Entrega ' + sc.delivery);
+      parts.push('Precisión ' + sc.precision, 'Combustible ' + sc.fuel, 'Tiempo ' + sc.time);
+      if (result.hasCapsules) parts.push('Cápsulas ' + sc.capsules);
+      endScoreEl.textContent = parts.join(' · ');
       endBestEl.textContent = 'Puntaje ' + sc.total + ' · ' + (record ? '¡Nuevo récord!' : 'Mejor: ' + result.prevBest);
     } else {
       endScoreEl.textContent = '';
@@ -145,7 +157,20 @@
   function setupHud(n, level) {
     hud.level.textContent = 'Nivel ' + n + '/' + LEVELS.length + ' · ' + level.name;
     hud.windRow.hidden = level.wind === 0 && !level.gusts;
+    hud.packageRow.hidden = !level.pickup;
+    hud.capsuleRow.hidden = !(level.capsules && level.capsules.length > 0);
     updateTotal();
+  }
+
+  // Paquete (solo en misiones) y cápsulas tomadas k/total (solo si el nivel tiene).
+  function showMission(m, level) {
+    if (level.pickup) {
+      hud.packageVal.textContent = m.delivered ? 'Entregado' : m.cargo ? 'A bordo' : 'Por recoger';
+      hud.packageRow.classList.toggle('ok', m.cargo);
+    }
+    if (level.capsules && level.capsules.length > 0) {
+      hud.capsuleVal.textContent = m.taken.filter(Boolean).length + '/' + level.capsules.length;
+    }
   }
 
   // wind = viento del paso que sigue (con ráfagas cambia con el tiempo).
@@ -186,19 +211,29 @@
       hideEnd();
       setupHud(this.levelNumber, this.level);
 
-      this.state = createState(this.level);
+      // Cada intento empieza de cero: paquete en A, combustible lleno y cápsulas en su lugar.
+      this.mission = createMission(this.level);
       this.acc = 0;
-      this.stepCount = 0;
       this.ended = false;
 
       this.add.image(0, 0, keys.background).setOrigin(0, 0);
       this.add.image(0, CONFIG.GROUND_Y, keys.ground).setOrigin(0, 0);
       this.platform = this.add.image(platformAt(this.level, 0).x1, CONFIG.GROUND_Y, keys.platform).setOrigin(0, 0);
 
+      // Misión: plataforma A con el paquete encima (se oculta al recogerlo).
+      this.packageImage = null;
+      if (this.level.pickup) {
+        const a = this.level.pickup;
+        this.add.image(a.x1, CONFIG.GROUND_Y, keys.pickup).setOrigin(0, 0);
+        this.packageImage = this.add.image((a.x1 + a.x2) / 2, CONFIG.GROUND_Y, keys.package).setOrigin(0.5, 1);
+      }
+      // Cápsulas centradas en su posición (se ocultan al tomarlas).
+      this.capsuleImages = (this.level.capsules || []).map((c, i) => this.add.image(c.x, c.y, keys.capsules[i]));
+
       // La llama cuelga de la tobera (borde inferior de la nave) y gira con ella.
       this.flame = this.add.image(0, CONFIG.SHIP_HALF + 2, KEYS.FLAME_A).setVisible(false);
       this.shipImage = this.add.image(0, 0, KEYS.SHIP);
-      this.ship = this.add.container(this.state.x, this.state.y, [this.flame, this.shipImage]);
+      this.ship = this.add.container(this.mission.ship.x, this.mission.ship.y, [this.flame, this.shipImage]);
 
       this.cursors = this.input.keyboard.createCursorKeys();
       // Espacio sirve para reintentar; se captura para que nunca haga scroll en la página.
@@ -222,48 +257,58 @@
       this.acc += Math.min(delta, MAX_FRAME_DELTA_MS) / 1000;
       let steps = 0;
       while (this.acc >= CONFIG.DT && steps < MAX_STEPS_PER_FRAME) {
-        // stepCount = pasos dados antes de este; la física lo usa para la plataforma móvil.
-        this.state = step(this.state, input, this.level, this.stepCount);
-        this.stepCount++;
+        // La misión lleva la cuenta de pasos (n), que usan la plataforma móvil y las ráfagas.
+        this.mission = missionStep(this.mission, input, this.level);
         this.acc -= CONFIG.DT;
         steps++;
-        if (this.state.status !== 'flying') break;
+        if (this.mission.status !== 'flying') break;
       }
       if (steps === MAX_STEPS_PER_FRAME) this.acc = 0;
 
-      const thrusting = input.thrust && this.state.fuel > 0 && this.state.status === 'flying';
+      // Estacionada sin ↑ no hay llama; con ↑ despega y sí.
+      const m = this.mission;
+      const thrusting = input.thrust && m.ship.fuel > 0 && m.status === 'flying';
       this.render(thrusting);
 
-      if (this.state.status !== 'flying') this.finish();
+      if (m.status !== 'flying') this.finish();
     }
 
     render(thrusting) {
-      const s = this.state;
-      const platform = platformAt(this.level, this.stepCount);
+      const m = this.mission;
+      const s = m.ship;
+      const platform = platformAt(this.level, m.n);
       this.platform.setX(platform.x1);
       this.ship.setPosition(s.x, s.y);
       this.ship.setAngle(s.angle);
       this.flame.setVisible(thrusting);
-      this.flame.setTexture(Math.floor(this.stepCount / 4) % 2 === 0 ? KEYS.FLAME_A : KEYS.FLAME_B);
+      this.flame.setTexture(Math.floor(m.n / 4) % 2 === 0 ? KEYS.FLAME_A : KEYS.FLAME_B);
+      if (this.packageImage) this.packageImage.setVisible(!m.cargo);
+      this.capsuleImages.forEach((img, i) => img.setVisible(!m.taken[i]));
 
       updateHud(s, this.level.fuel, platform.vx);
-      showWind(windAt(this.level, this.stepCount));
+      showWind(windAt(this.level, m.n));
+      showMission(m, this.level);
     }
 
-    // Al aterrizar: puntaje con la plataforma del paso del contacto y los pasos del intento.
+    // Al ganar: puntaje con la plataforma del paso final y los pasos del intento (scoreRun).
     finish() {
+      const m = this.mission;
       this.ended = true;
       this.flame.setVisible(false);
-      if (this.state.status === 'crashed') this.shipImage.setTint(0xff5555);
+      if (m.status === 'crashed') this.shipImage.setTint(0xff5555);
       let result = null;
-      if (this.state.status === 'landed') {
-        const score = scoreLanding(this.state, this.level, platformAt(this.level, this.stepCount), this.stepCount);
-        result = { score: score, prevBest: recordScore(this.levelNumber, score) };
+      if (m.status === 'landed') {
+        const score = scoreRun(m, this.level, platformAt(this.level, m.n));
+        result = {
+          score: score,
+          prevBest: recordScore(this.levelNumber, score),
+          hasCapsules: !!(this.level.capsules && this.level.capsules.length > 0),
+        };
         updateTotal();
       }
       this.scene.launch('EndScene', {
-        status: this.state.status,
-        crashReason: this.state.crashReason,
+        status: m.status,
+        crashReason: m.reason,
         level: this.levelNumber,
         result: result,
       });
@@ -280,7 +325,7 @@
       const next = nextLevel(data.level, data.status);
       showEnd(data.status, data.crashReason, next, data.result);
 
-      // Reinicia la escena de vuelo (que vuelve a llamar a createState) sin recargar la página.
+      // Reinicia la escena de vuelo (que vuelve a llamar a createMission: el nivel completo) sin recargar la página.
       // Tras la misión completa (next === null) vuelve al nivel 1.
       let restarting = false;
       const restart = () => {

@@ -136,7 +136,7 @@ test('C-45 los niveles 1 a 3 se comportan igual que v2', () => {
 });
 
 test('C-46 datos de los niveles 4 a 6 y estado inicial', () => {
-  assert.strictEqual(LEVELS.length, 6);
+  assert.strictEqual(LEVELS.length, 10);
   assert.deepStrictEqual(GIGANTE, {
     id: 'gigante', name: 'Luna gigante', theme: 'gigante',
     gravity: 30, wind: 0, fuel: 90, fuelRate: 30,
@@ -178,7 +178,7 @@ test('C-47 regla de dificultad v3', () => {
     introduced.push(fresh[0] || null);
     for (const m of fresh) seen.add(m);
   }
-  assert.deepStrictEqual(introduced, [null, 'viento', 'plataforma móvil', 'consumo', 'ráfagas', 'velocidad inicial']);
+  assert.deepStrictEqual(introduced, [null, 'viento', 'plataforma móvil', 'consumo', 'ráfagas', 'velocidad inicial', null, null, null, null]);
 
   for (const level of LEVELS) {
     const limits = allKeys(level).filter((k) => /land|limit/i.test(k));
